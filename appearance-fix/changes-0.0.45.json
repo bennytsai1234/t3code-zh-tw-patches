@@ -1,0 +1,32 @@
+[
+  {
+    "file": "server.asar: apps/server/dist/client/assets/main-*.js",
+    "purpose": "等寬字型偵測：快取結果＋先用字型名稱判斷，避免外觀頁對每個已安裝字型做大量 canvas 量測而卡死",
+    "from": "function AG(e){let t=gG(e);if(t===null)return!0;try{if(CG===void 0&&(CG=document.createElement(`canvas`).getContext(`2d`)),CG===null)return!0;let e=CG;for(let n of EG)if(e.font=`${n} 32px ${t}, monospace`,!kG(DG.map(t=>e.measureText(t).width)))return!1;return!0}catch{return!0}}",
+    "to": "var _monoCache=new Map();function AG(e){let t=gG(e);if(t===null)return!0;let c=_monoCache.get(t);if(c!==void 0)return c;let l=t.toLowerCase();if(/(?:mono|code|console|courier|fixed|terminal)/i.test(l)){_monoCache.set(t,!0);return!0}if(/(?:sans|serif|comic|script|display|handwriting)/i.test(l)){_monoCache.set(t,!1);return!1}try{if(CG===void 0&&(CG=document.createElement(\"canvas\").getContext(\"2d\")),CG===null)return!0;CG.font=`32px \"${t}\", monospace`;let r=Math.abs(CG.measureText(\"i\").width-CG.measureText(\"M\").width)<0.01;_monoCache.set(t,r);return r}catch{return!0}}"
+  },
+  {
+    "file": "server.asar: apps/server/dist/client/assets/settings.appearance-*.js",
+    "purpose": "移除 React Compiler 的 memo 快取（行為等價，非必要）",
+    "from": "import{s as e}from\"./Icon-Bs5kt4yk.js\";import{ky as t,os as n}from\"./utils-OGVAI8-o.js\";import{t as r}from\"./SettingsPanels-DFtHRaTL.js\";var i=t(),a=e(n());function o(){let e=(0,i.c)(1),t;return e[0]===Symbol.for(`react.memo_cache_sentinel`)?(t=(0,a.jsx)(r,{}),e[0]=t):t=e[0],t}export{o as component};\n//# sourceMappingURL=settings.appearance-t7zEF1j8.js.map",
+    "to": "import{s as e}from\"./Icon-Bs5kt4yk.js\";import{ky as t,os as n}from\"./utils-OGVAI8-o.js\";import{t as r}from\"./SettingsPanels-DFtHRaTL.js\";var a=e(n());function o(){return(0,a.jsx)(r,{})}export{o as component};"
+  },
+  {
+    "file": "app.asar: apps/desktop/dist-electron/main.cjs",
+    "purpose": "檔案開頭加上全域 unhandledRejection 處理，避免未捕捉的 Promise 錯誤讓主程序崩潰",
+    "from": "",
+    "to": "process.on(\"unhandledRejection\", (err) => { console.error(\"[t3code desktop] Unhandled rejection:\", err); });\n"
+  },
+  {
+    "file": "app.asar: apps/desktop/dist-electron/main.cjs",
+    "purpose": "切換主題時設定視窗背景色與標題列按鈕顏色，失敗不再拋錯",
+    "from": "function syncWindowAppearance(window, shouldUseDarkColors, platform) {\n\treturn sync(() => {\n\t\tif (window.isDestroyed()) return;\n\t\twindow.setBackgroundColor(getInitialWindowBackgroundColor(shouldUseDarkColors));\n\t\tconst { titleBarOverlay } = getWindowTitleBarOptions(shouldUseDarkColors, platform);\n\t\tif (typeof titleBarOverlay === \"object\") window.setTitleBarOverlay(titleBarOverlay);\n\t});\n}\n",
+    "to": "function syncWindowAppearance(window, shouldUseDarkColors, platform) {\n\treturn sync(() => {\n\t\tif (window.isDestroyed()) return;\n\t\ttry {\n\t\t\twindow.setBackgroundColor(getInitialWindowBackgroundColor(shouldUseDarkColors));\n\t\t} catch (_) {}\n\t\tconst { titleBarOverlay } = getWindowTitleBarOptions(shouldUseDarkColors, platform);\n\t\tif (typeof titleBarOverlay === \"object\") {\n\t\t\ttry {\n\t\t\t\twindow.setTitleBarOverlay({\n\t\t\t\t\tcolor: titleBarOverlay.color,\n\t\t\t\t\tsymbolColor: titleBarOverlay.symbolColor\n\t\t\t\t});\n\t\t\t} catch (_) {\n\t\t\t\ttry {\n\t\t\t\t\twindow.setTitleBarOverlay(titleBarOverlay);\n\t\t\t\t} catch (_) {}\n\t\t\t}\n\t\t}\n\t});\n}\n"
+  },
+  {
+    "file": "app.asar: apps/desktop/dist-electron/main.cjs",
+    "purpose": "系統主題變更事件的處理包上 try/catch 與 .catch",
+    "from": "yield* electronTheme.onUpdated(() => {\n\t\t\trunEffect(desktopWindow.syncAppearance.pipe(withSpan(\"desktop.lifecycle.themeUpdated\")));\n\t\t});\n\t\t",
+    "to": "yield* electronTheme.onUpdated(() => {\n\t\t\ttry {\n\t\t\t\trunEffect(desktopWindow.syncAppearance.pipe(withSpan(\"desktop.lifecycle.themeUpdated\"))).catch(() => {});\n\t\t\t} catch (_) {}\n\t\t});\n\t\t"
+  }
+]

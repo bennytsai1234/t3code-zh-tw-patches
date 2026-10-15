@@ -1,0 +1,8 @@
+/builds/
+/install.log
+/tools/node_modules/
+/tools/launchNightly.vbs
+*.log
+.env*
+userdata/
+work/

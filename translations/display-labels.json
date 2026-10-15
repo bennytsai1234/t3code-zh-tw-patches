@@ -1,0 +1,14 @@
+{
+  "Commit": "提交", "Push": "推送", "Browser": "瀏覽器", "Code": "程式碼",
+  "Fast": "快速", "Default": "預設", "Custom": "自訂", "Mixed": "混合",
+  "Unavailable": "無法使用", "Agent": "代理", "Plan Ready": "計畫已就緒",
+  "Reasoning effort": "思考程度", "Reasoning Effort": "思考程度", "Effort": "思考程度",
+  "Thinking": "思考", "Thinking budget": "思考額度", "Service tier": "服務層級",
+  "Speed": "速度", "None": "無", "Minimal": "最低", "Low": "低", "Medium": "中",
+  "High": "高", "XHigh": "極高", "Extra high": "極高", "Max": "最高", "Maximum": "最高",
+  "Auto": "自動", "Automatic": "自動", "Adaptive": "自適應", "Enabled": "啟用", "Disabled": "停用",
+  "Standard": "標準", "Priority": "優先", "Balanced": "均衡", "On": "開啟", "Off": "關閉",
+  "Ultrafast": "極速", "Ultrathink": "深度思考", "Ultra": "超高", "Extra High": "極高",
+  "Reasoning": "思考程度", "Service Tier": "服務層級",
+  "2x speed, increased usage": "速度約 2 倍，用量較高"
+}

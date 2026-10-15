@@ -1,0 +1,11 @@
+{
+  "version": "0.0.46-nightly.20261015.3158",
+  "fontPath": "apps/server/dist/client/assets/main-CYYWX3h1.js",
+  "patches": [
+    "monospace cache and reduced font measurements",
+    "unhandledRejection handler",
+    "window appearance try/catch",
+    "theme event rejection handling"
+  ],
+  "optionalReactMemoPatch": "not carried: old appearance route replaced upstream; documented as unnecessary"
+}

@@ -1,0 +1,18 @@
+{
+  "name": "t3code-zh-tw-patches-tools",
+  "version": "1.0.0",
+  "description": "Pinned Nightly Traditional Chinese and thinking translation patches",
+  "private": true,
+  "scripts": {
+    "test": "node --test thinking.test.cjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@electron/asar": "^4.3.1",
+    "acorn": "^8.19.0",
+    "acorn-walk": "^8.3.5"
+  }
+}
