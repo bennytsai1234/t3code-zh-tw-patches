@@ -26,6 +26,14 @@ node tools/build.cjs builds/0.1.0/orig builds/0.1.0/zh-release
 
 安裝後用官方的 `T3 Code (Beta)` 捷徑開啟，資料使用預設的 `%USERPROFILE%\.t3\userdata`。
 
+官方自動更新會用原版程式包覆蓋補丁，因此用 T3 Code 內建的環境變數固定版本：
+
+```powershell
+setx T3CODE_DISABLE_AUTO_UPDATE true
+```
+
+設定後新開的 T3 Code 不會自動檢查或下載更新，設定頁會顯示自動更新已停用。要升級時執行 `setx T3CODE_DISABLE_AUTO_UPDATE false`，重開 T3 Code 後再更新，並先移植補丁到新版。
+
 安裝工具不會停止任何程序。它會檢查版本與輸出雜湊，將兩份原程式包備份至 `%LOCALAPPDATA%\t3code-zh-tw-patches\backups\<時間>` 後才覆寫；若複製失敗，會嘗試從這份備份還原。安裝只更新兩份 `.asar`，同版本的 `.asar.unpacked` 與其他安裝資源保留。
 
 還原時先關閉 Beta，再將安裝時顯示的備份路徑傳給同一工具：
