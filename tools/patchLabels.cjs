@@ -9,6 +9,8 @@ const [input, output] = process.argv.slice(2);
 const labels = JSON.parse(fs.readFileSync(path.join(__dirname, '../translations/display-labels.json'), 'utf8'));
 const archive = readArchive(input), replacements = new Map();
 let total = 0;
+// Version-pinned modules; a missing one means the chunk names changed.
+const pinned = new Set(['picker', 'utils', 'main']);
 for (const [file, entry] of archive.files) {
   if (!/\/client\/assets\/.*\.js$/.test(file) || /\/(?:dist-|chunk-|runtime-|index-|katex|cytoscape|mermaid)/.test(file)) continue;
   let src = archive.read(entry).toString('utf8');
@@ -43,23 +45,28 @@ for (const [file, entry] of archive.files) {
     }
   });
   // These two getters are the picker library's item-to-label interface, not option values.
-  if (/\/ProviderModelPicker-/.test(file)) {
-    for (const match of src.matchAll(/function (?:lt|ut)\(e\)\{return e\.label\}/g)) {
+  if (/\/ProviderModelPicker-chYJxHjc\.js$/.test(file)) {
+    const getters = [...src.matchAll(/function (?:ft|pt)\(e\)\{return e\.label\}/g)];
+    if (getters.length !== 2) throw Error('找不到模型選擇器的兩個標籤函式。');
+    for (const match of getters) {
       const start = match.index + match[0].indexOf('e.label');
       edits.push({ start, end: start + 'e.label'.length, text: 'zhDisplayLabel(e.label)' });
     }
+    pinned.delete('picker');
   }
-  if (/\/utils-Gxj8xu3M\.js$/.test(file)) {
+  if (/\/utils-Hcg8Weh5\.js$/.test(file)) {
     const from = 'let{label:ne}=ee,re=';
     if (src.split(from).length !== 2) throw Error('找不到模型選項的最終顯示標籤。');
     const start = src.indexOf(from);
     edits.push({ start, end: start + from.length, text: 'let{label:zhOptionLabel}=ee,ne=zhDisplayLabel(zhOptionLabel),re=' });
+    pinned.delete('utils');
   }
-  if (/\/main-CYYWX3h1\.js$/.test(file)) {
+  if (/\/main-Optk7rV0\.js$/.test(file)) {
     const from = 'function sk(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
     if (src.split(from).length !== 2) throw Error('找不到更新項目數量的顯示函式。');
     const start = src.indexOf(from);
     edits.push({ start, end: start + from.length, text: 'function sk(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
+    pinned.delete('main');
   }
   if (!edits.length) continue;
   edits.sort((a,b) => b.start-a.start);
@@ -70,5 +77,6 @@ for (const [file, entry] of archive.files) {
   replacements.set(file, Buffer.from(src));
   total += edits.length;
 }
+if (pinned.size) throw Error(`找不到版本限定的顯示模組：${[...pinned].join(', ')}`);
 writeArchive(input, output, replacements);
 console.log(`顯示標籤：${total} 個顯示接點；模型 ID、選項值及比對值維持原文。`);

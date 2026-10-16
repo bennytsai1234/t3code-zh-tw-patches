@@ -1,4 +1,4 @@
-// Inserted in the pinned Nightly server bundle; uses its existing Effect services.
+// Inserted in the pinned Beta server bundle; uses its existing Effect services.
 const layerZhThinkingTranslation = add$1("POST", "/api/zh-tw/thinking", gen$1(function* () {
   yield* authenticateRawRouteWithScope(AuthOrchestrationOperateScope);
   const request = yield* HttpServerRequest;

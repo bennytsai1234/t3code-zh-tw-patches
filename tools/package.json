@@ -1,7 +1,7 @@
 {
   "name": "t3code-zh-tw-patches-tools",
   "version": "1.0.0",
-  "description": "Pinned Nightly Traditional Chinese and thinking translation patches",
+  "description": "Pinned Beta Traditional Chinese and thinking translation patches",
   "private": true,
   "scripts": {
     "test": "node --test thinking.test.cjs"

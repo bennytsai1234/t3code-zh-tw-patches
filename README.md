@@ -1,35 +1,34 @@
 # T3 Code 繁體中文與自動思考翻譯補丁
 
-適用 Windows **0.0.46-nightly.20261015.3158**，官方 commit **e6bbfdb9ffe8**。此工具修改現有程式包，不升級 T3 Code，不匯入舊對話，不變更供應商、快捷鍵與外觀設定。不同版本會停止建置，需先重新移植補丁。
+適用 Windows **T3 Code (Beta) 0.1.0**，官方 commit **81493efb71e8**。此工具修改現有程式包，不升級 T3 Code，不匯入舊對話，不變更供應商、快捷鍵與外觀設定。不同版本會停止建置，需先重新移植補丁。
 
 ## 目前安裝方式
 
-先安裝 Node.js 22.12 以上與上述版本的官方 T3 Code Nightly。官方程式包與安裝程式不包含在此倉庫。以下在 PowerShell、倉庫根目錄執行：
+先安裝 Node.js 22.12 以上與上述版本的官方 T3 Code (Beta)。官方程式包與安裝程式不包含在此倉庫。以下在 PowerShell、倉庫根目錄執行：
 
 ```powershell
 npm ci --prefix tools
 # 第一次套用前，從尚未修改的官方安裝保存原始程式包。
-$resources = "$env:LOCALAPPDATA\Programs\t3code-nightly\resources"
-New-Item -ItemType Directory -Path builds\0.0.46-nightly.20261015.3158\orig -Force
-Copy-Item "$resources\app.asar", "$resources\server.asar" builds\0.0.46-nightly.20261015.3158\orig
-node tools/build.cjs builds/0.0.46-nightly.20261015.3158/orig builds/0.0.46-nightly.20261015.3158/zh-release
+$resources = "$env:LOCALAPPDATA\Programs\t3code\resources"
+New-Item -ItemType Directory -Path builds\0.1.0\orig -Force
+Copy-Item "$resources\app.asar", "$resources\server.asar" builds\0.1.0\orig
+node tools/build.cjs builds/0.1.0/orig builds/0.1.0/zh-release
 ```
 
 建置會驗證兩份官方原始程式包的 SHA256，依序套用外觀修正、思考翻譯、固定介面翻譯及顯示標籤，並檢查所有修改後 JavaScript 的 V8 語法。請保留 `orig`，以後一律從它重建；不要將已修改的程式包當作原始輸入。
 
-儲存工作、完全關閉 T3 Code Nightly 後，再執行：
+儲存工作、完全關閉 T3 Code (Beta) 後，再執行：
 
 ```powershell
-.\tools\install.ps1 -Src .\builds\0.0.46-nightly.20261015.3158\zh-release
-# 安裝位置不同時，加上 -InstallDir 'D:\Apps\t3code-nightly'
-.\tools\launch.ps1
+.\tools\install.ps1 -Src .\builds\0.1.0\zh-release
+# 安裝位置不同時，加上 -InstallDir 'D:\Apps\t3code'
 ```
+
+安裝後用官方的 `T3 Code (Beta)` 捷徑開啟，資料使用預設的 `%USERPROFILE%\.t3\userdata`。
 
 安裝工具不會停止任何程序。它會檢查版本與輸出雜湊，將兩份原程式包備份至 `%LOCALAPPDATA%\t3code-zh-tw-patches\backups\<時間>` 後才覆寫；若複製失敗，會嘗試從這份備份還原。安裝只更新兩份 `.asar`，同版本的 `.asar.unpacked` 與其他安裝資源保留。
 
-`launch.ps1` 使用 `%USERPROFILE%\.t3-nightly` 作為 `T3CODE_HOME`，資料存於其下的 `userdata`。可用 `-HomeDir` 指定自己的獨立主目錄。既有 Nightly 捷徑若已設定這個目錄，可繼續使用；直接執行 exe 可能使用預設 `.t3`。原有個人啟動腳本不放入公開倉庫。
-
-還原時先關閉 Nightly，再將安裝時顯示的備份路徑傳給同一工具：
+還原時先關閉 Beta，再將安裝時顯示的備份路徑傳給同一工具：
 
 ```powershell
 .\tools\install.ps1 -Src "$env:LOCALAPPDATA\t3code-zh-tw-patches\backups\<時間>"
@@ -51,7 +50,7 @@ node tools/build.cjs builds/0.0.46-nightly.20261015.3158/orig builds/0.0.46-nigh
 
 `translations/client/` 保存固定介面翻譯；`translations/display-labels.json` 保存模型選項與操作標籤的顯示對照，僅在 React 最後顯示時處理，不改 ID、option value、狀態與指令。品牌、模型名稱、程式碼、路徑及傳給代理的工具協定文字保留原文。
 
-`tools/patchThinking.cjs` 是版本限定的串接補丁；兩份 `thinking-*.inc.js` 是可閱讀的前後端新增原始碼。`tools/build.cjs` 是完整重建入口；`tools/install.ps1` 支援 Nightly 安裝與還原。`appearance-fix/` 保存原有外觀修正來源。
+`tools/patchThinking.cjs` 是版本限定的串接補丁；兩份 `thinking-*.inc.js` 是可閱讀的前後端新增原始碼。`tools/build.cjs` 是完整重建入口；`tools/install.ps1` 支援 Beta 安裝與還原。`appearance-fix/` 保存原有外觀修正來源。
 
 ```powershell
 npm test --prefix tools
@@ -173,3 +172,15 @@ node tools/prepareNightly.cjs builds/0.0.46-nightly.20261015.3158/orig <輸出�
 舊的 `tools/install.ps1` 仍專供 0.0.45 的 `t3code` 路徑，不適用 Nightly。Nightly 關閉後，應將對應版本 `zh/` 的兩個 `.asar` 複製到 `t3code-nightly/resources/`。官方更新會覆蓋本機補丁，之後每次更新都需重新對應並套用。
 
 已驗證：官方 Windows 安裝檔 SHA256、修改後 JavaScript 的 V8 語法、獨立測試伺服器啟動、實際提供的中文與字型補丁模組、正式 Nightly 後端 HTTP 200、桌面視窗正常回應、全新資料庫對話數為 0。未逐頁操作介面，也未送出實際 AI 請求。
+
+## 6. 2026-10-16 改用 Beta 0.1.0
+
+官方 Beta `0.1.0`（commit `81493efb71e8`）比上述 Nightly 新 22 個上游 commit，安裝在原本 0.0.45 的 `%LOCALAPPDATA%\Programs\t3code`，資料沿用 `.t3\userdata`（舊版 168 段對話已由官方轉入新資料庫）。補丁改為只支援這個版本，Nightly 的版本鎖定、`launch.ps1` 與 `launchNightly.vbs` 移除；`prepareNightly.cjs` 改名為 `prepareAppearance.cjs`。
+
+移植內容：
+
+- 外觀修正、後端思考翻譯、桌面外殼翻譯不必修改即可套用。
+- 前端模組檔名更新為 `runtime-D0ddCMLS`、`runtime-CpBx-VNw`、`_chat-D4Fgdsqn`、`utils-Hcg8Weh5`、`main-Optk7rV0`、`ProviderModelPicker-chYJxHjc`。思考區塊的 remark 外掛由 `Cz` 改名為 `Nz`，模型選擇器的標籤函式由 `lt`／`ut` 改名為 `ft`／`pt`，兩者內容與舊版相同；其餘使用到的壓縮識別字逐一比對，定義一致。
+- `patchLabels.cjs` 的三個版本限定接點找不到時改為直接報錯；舊版遇到檔名變更會略過而不提示。
+
+翻譯表使用 4,907 條、替換 6,845 處、100 個模組，與 Nightly 相同；顯示接點 528 個。這次同樣未補翻新版新增文案。驗證結果見 [VERIFICATION.md](VERIFICATION.md)。

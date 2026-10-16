@@ -11,11 +11,11 @@ if (input === output) throw Error('原始與輸出目錄必須不同。');
 const app = readArchive(path.join(input, 'app.asar'));
 const packageEntry = app.files.find(([p]) => p === 'package.json');
 const pkg = JSON.parse(app.read(packageEntry[1]).toString('utf8'));
-const supported = '0.0.46-nightly.20261015.3158';
+const supported = '0.1.0';
 if (pkg.version !== supported) throw Error(`此補丁只支援 ${supported}，實際為 ${pkg.version}。`);
 const officialHashes = {
-  'app.asar': 'e7fe3bb714ec36132e502a5c80fe7909748b410175679d69ae00fb843907d06e',
-  'server.asar': 'f3bfdb321ea14763c1e96d157e81998020c5a3bcb98b4582ad0f6d2343b2afbd'
+  'app.asar': 'ccd648892c0862c4b8e43a267eb413620559e2de6dcb50fea9f65571a59f88c3',
+  'server.asar': '17204490c2723229033a92e4edf3abc1e288ca4a984e5206f90d46a42f2819dd'
 };
 for (const [name, expected] of Object.entries(officialHashes)) {
   if (crypto.createHash('sha256').update(fs.readFileSync(path.join(input, name))).digest('hex') !== expected) {
@@ -32,7 +32,7 @@ function run(tool, ...args) {
   if (result.stderr) process.stderr.write(result.stderr);
 }
 try {
-  run('prepareNightly.cjs', input, temp);
+  run('prepareAppearance.cjs', input, temp);
   run('patchThinking.cjs', path.join(temp, 'server-fixed.asar'), path.join(temp, 'server-thinking.asar'));
   run('apply.js', path.join(temp, 'server-thinking.asar'), path.join(temp, 'server-zh.asar'), path.join(__dirname, '../translations/client'));
   run('patchLabels.cjs', path.join(temp, 'server-zh.asar'), path.join(output, 'server.asar'));
@@ -42,7 +42,7 @@ try {
   }
   const hashes = {};
   for (const name of ['app.asar', 'server.asar']) hashes[name] = crypto.createHash('sha256').update(fs.readFileSync(path.join(output, name))).digest('hex');
-  fs.writeFileSync(path.join(output, 'patch-manifest.json'), JSON.stringify({ version: supported, upstreamCommit: 'e6bbfdb9ffe8', hashes }, null, 2) + '\n');
+  fs.writeFileSync(path.join(output, 'patch-manifest.json'), JSON.stringify({ version: supported, upstreamCommit: '81493efb71e8', hashes }, null, 2) + '\n');
   console.log(`已建置 ${output}`);
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });

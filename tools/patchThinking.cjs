@@ -35,7 +35,7 @@ edit(/\/binCli-[^/]+\.mjs$/, src => {
   return once(src, ')), layerOtlpTracesProxyRoute, layerAssetRoute,', ')), layerZhThinkingTranslation, layerOtlpTracesProxyRoute, layerAssetRoute,');
 });
 // Reuse the connected environment's authorization and DPoP signer, including remote hosts.
-edit(/\/client\/assets\/runtime-3DQEnqWf\.js$/, src => src + `
+edit(/\/client\/assets\/runtime-D0ddCMLS\.js$/, src => src + `
 export function zhTranslateEffect(environmentId, threadId, text) {
   return kg(environmentId, R(function* () {
     const supervisor = yield* Ch;
@@ -59,12 +59,12 @@ export async function zhExecuteTranslation(context, ...args) {
   throw Error("思考翻譯失敗，請確認環境連線、文字生成模型與可用額度。");
 }
 `);
-edit(/\/client\/assets\/runtime-WO-VOBWY\.js$/, src => 'import { zhExecuteTranslation } from "./runtime-3DQEnqWf.js";\n' + src + '\nexport function zhTranslateRequest(registry, ...args) { const runtime = registry.get(Hg); if (runtime._tag !== "Success") return Promise.reject(Error("環境執行服務尚未就緒。")); return zhExecuteTranslation(runtime.value, ...args); }\n');
-edit(/\/client\/assets\/_chat-kIUKatR2\.js$/, src => {
-  src = 'import { zhTranslateRequest } from "./runtime-WO-VOBWY.js";\n' + src;
+edit(/\/client\/assets\/runtime-CpBx-VNw\.js$/, src => 'import { zhExecuteTranslation } from "./runtime-D0ddCMLS.js";\n' + src + '\nexport function zhTranslateRequest(registry, ...args) { const runtime = registry.get(Hg); if (runtime._tag !== "Success") return Promise.reject(Error("環境執行服務尚未就緒。")); return zhExecuteTranslation(runtime.value, ...args); }\n');
+edit(/\/client\/assets\/_chat-D4Fgdsqn\.js$/, src => {
+  src = 'import { zhTranslateRequest } from "./runtime-CpBx-VNw.js";\n' + src;
   src += '\n' + fs.readFileSync(path.join(__dirname, 'thinking-client.inc.js'), 'utf8');
-  src = once(src, '(0,$.jsx)(Mo,{remarkPlugins:[Uo,[Cz,n.active?`Thinking`:`Thought`]],children:n.entry.detail??a})', '(0,$.jsx)(ZhThinking,{text:n.entry.detail??a,active:n.active,environmentId:r.activeThreadEnvironmentId,threadId:r.threadRef?.threadId,render:text=>(0,$.jsx)(Mo,{remarkPlugins:[Uo,[Cz,n.active?`Thinking`:`Thought`]],children:text})})');
-  src = once(src, '(0,$.jsx)(Mo,{remarkPlugins:[Uo,[Cz,n.toolLifecycleStatus===`inProgress`?`Thinking`:`Thought`]],children:n.detail??A})', '(0,$.jsx)(ZhThinking,{text:n.detail??A,active:n.toolLifecycleStatus===`inProgress`,environmentId:a.activeThreadEnvironmentId,threadId:a.threadRef?.threadId,render:text=>(0,$.jsx)(Mo,{remarkPlugins:[Uo,[Cz,n.toolLifecycleStatus===`inProgress`?`Thinking`:`Thought`]],children:text})})');
+  src = once(src, '(0,$.jsx)(Mo,{remarkPlugins:[Uo,[Nz,n.active?`Thinking`:`Thought`]],children:n.entry.detail??a})', '(0,$.jsx)(ZhThinking,{text:n.entry.detail??a,active:n.active,environmentId:r.activeThreadEnvironmentId,threadId:r.threadRef?.threadId,render:text=>(0,$.jsx)(Mo,{remarkPlugins:[Uo,[Nz,n.active?`Thinking`:`Thought`]],children:text})})');
+  src = once(src, '(0,$.jsx)(Mo,{remarkPlugins:[Uo,[Nz,n.toolLifecycleStatus===`inProgress`?`Thinking`:`Thought`]],children:n.detail??A})', '(0,$.jsx)(ZhThinking,{text:n.detail??A,active:n.toolLifecycleStatus===`inProgress`,environmentId:a.activeThreadEnvironmentId,threadId:a.threadRef?.threadId,render:text=>(0,$.jsx)(Mo,{remarkPlugins:[Uo,[Nz,n.toolLifecycleStatus===`inProgress`?`Thinking`:`Thought`]],children:text})})');
   return once(src, '(0,$.jsx)(ss,{text:r.text,cwd:e.cwd,threadRef:{environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId},lineBreaks:!0})', '(0,$.jsx)(ZhThinking,{text:r.text,environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId,render:text=>(0,$.jsx)(ss,{text,cwd:e.cwd,threadRef:{environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId},lineBreaks:!0})})');
 });
 writeArchive(input, output, replacements);
