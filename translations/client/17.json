@@ -1,4 +1,6 @@
 {
+  "Loading {0}": "正在載入 {0}",
+  "Account": "帳號",
   "a selected environment": "所選環境",
   "Update {0} to {1} or newer to use {2}.": "請將 {0} 更新至 {1} 或更新版本以使用 {2}。",
   "known to be broken": "已知無法正常使用",

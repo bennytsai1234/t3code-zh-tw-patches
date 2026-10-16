@@ -11,6 +11,8 @@ const UI_CTX = new Set([
 // Value-holding contexts that are only translated when the string never shows up in logic anywhere.
 const SOFT_CTX = new Set(["var", "return", "assign", "arrow", "default", "tplexpr"]);
 const LOGIC = /^(bin:(===|!==|==|!=|in)|case|key|ckey|member|call:(Set|Map)#|prop:(_tag|type|value|id|name|kind|key|status|className|d)$|test)/;
+// The "Code" beside the T3 logo is the product name; the same word as a tab label is still translated.
+const WORDMARK_CHILDREN = new Set(["Code"]);
 
 function loadDict(dir) {
   const dict = new Map();
@@ -66,6 +68,7 @@ function translateFile(file, dict, logicStrings, stats) {
     src = s;
     const zh = dict.get(value);
     if (zh === undefined) return;
+    if (ctx === "prop:children" && WORDMARK_CHILDREN.has(value)) return;
     const dialog = ctx === "join" || /^call:[\w$]+\.confirm#0$/.test(ctx);
     // Page titles keyed by route, e.g. { "/settings/general": "General" }.
     const routeTitle = ctx.startsWith("prop:/settings/");
