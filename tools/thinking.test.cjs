@@ -99,6 +99,14 @@ test('成功譯文保存至本機資料庫；重載元件後命中快取且不�
   assert.equal(reloadCalls, 0);
   assert.equal(reloaded.render('Read the file first.').props.children[0], '先讀取檔案。');
 });
+test('本機資料庫開啟時同步拋錯，仍照常翻譯', async () => {
+  let calls = 0;
+  const h = harness(async () => { calls++; return { translation: '先讀取檔案。' }; }, { open() { throw Error('storage disabled'); } });
+  h.render('Read the file first.');
+  await h.settle();
+  assert.equal(calls, 1);
+  assert.equal(h.render('Read the file first.').props.children[0], '先讀取檔案。');
+});
 test('不同對話不共用翻譯；純中文不呼叫模型', async () => {
   let calls = 0;
   const h = harness(async () => { calls++; return { translation: '測試' }; });

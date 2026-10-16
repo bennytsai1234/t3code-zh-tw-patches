@@ -5,7 +5,15 @@ const zhThinkingDatabase = (() => {
   try {
     if (!globalThis.indexedDB) return Promise.resolve(null);
     return new Promise(resolve => {
-      const request = globalThis.indexedDB.open("t3-zh-tw-thinking-cache", 1);
+      // open() can throw synchronously (e.g. storage disabled); an executor throw would reject this
+      // shared promise forever and block every translation, so fall back to no cache instead.
+      let request;
+      try {
+        request = globalThis.indexedDB.open("t3-zh-tw-thinking-cache", 1);
+      } catch {
+        resolve(null);
+        return;
+      }
       request.onupgradeneeded = () => {
         try {
           if (!request.result.objectStoreNames.contains("translations")) request.result.createObjectStore("translations");

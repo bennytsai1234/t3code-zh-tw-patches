@@ -8,13 +8,16 @@ export function zhTranslateEffect(prepared, threadId, text) {
     if (M(session)) return yield* new Bh();
     const signer = yield* vi(jf);
     const remoteAuthorization = yield* vi(Zf);
-    const url = new URL("/api/zh-tw/thinking", prepared.httpBaseUrl).toString();
+    // Fh passes the endpoint builder for the base URL of each attempt; a relay may move it when the
+    // authorization is renewed. Sign and fetch the same URL, on the origin of the app's own session endpoint.
+    let url = null;
     const result = yield* Fh({
-      prepared, signer, remoteAuthorization, group: "auth", method: "POST", url: () => url, timeoutMs: 18e4,
+      prepared, signer, remoteAuthorization, group: "auth", method: "POST", timeoutMs: 18e4,
+      url: endpoints => (url = new URL("/api/zh-tw/thinking", endpoints.session()).toString()),
       // A 401 is returned as a marker so Fh renews a rejected DPoP authorization and retries once.
       isUnauthorizedResponse: result => result.zhUnauthorized === true,
-      request: ({ headers }) => Zi(async signal => {
-        const response = await globalThis.fetch(url, {
+      request: ({ headers }) => { const target = url; return Zi(async signal => {
+        const response = await globalThis.fetch(target, {
           method: "POST", headers: { ...headers, "content-type": "application/json" },
           credentials: prepared.httpAuthorization === null ? "include" : "omit",
           body: JSON.stringify({ threadId, text }), signal
@@ -23,7 +26,7 @@ export function zhTranslateEffect(prepared, threadId, text) {
         if (response.status === 401) return { zhUnauthorized: true, error: result.error };
         if (!response.ok) throw Error(result.error || "思考翻譯失敗。");
         return result;
-      })
+      }); }
     }).pipe(D(Gn, session.value));
     if (result.zhUnauthorized) throw Error(result.error || "思考翻譯未通過環境驗證。");
     return result;
