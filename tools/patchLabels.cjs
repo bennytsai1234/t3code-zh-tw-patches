@@ -59,6 +59,11 @@ for (const [file, entry] of archive.files) {
     if (src.split(from).length !== 2) throw Error('找不到模型選項的最終顯示標籤。');
     const start = src.indexOf(from);
     edits.push({ start, end: start + from.length, text: 'let{label:zhOptionLabel}=ee,ne=zhDisplayLabel(zhOptionLabel),re=' });
+    // xZ returns the server's option label for the composer trigger, menu rows and summaries; display-only.
+    const trigger = 'return e.options.find(e=>e.id===r)?.label??';
+    if (src.split(trigger).length !== 2) throw Error('找不到選項標籤的回傳位置。');
+    const triggerStart = src.indexOf(trigger);
+    edits.push({ start: triggerStart, end: triggerStart + trigger.length, text: 'return zhDisplayLabel(e.options.find(e=>e.id===r)?.label)??' });
     pinned.delete('utils');
   }
   if (/\/main-Optk7rV0\.js$/.test(file)) {

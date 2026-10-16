@@ -1,12 +1,63 @@
 // This component runs inside the chat module, using its existing React aliases.
 const zhThinkingResults = new Map();
 let zhThinkingQueue = Promise.resolve();
+const zhThinkingDatabase = (() => {
+  try {
+    if (!globalThis.indexedDB) return Promise.resolve(null);
+    return new Promise(resolve => {
+      const request = globalThis.indexedDB.open("t3-zh-tw-thinking-cache", 1);
+      request.onupgradeneeded = () => {
+        try {
+          if (!request.result.objectStoreNames.contains("translations")) request.result.createObjectStore("translations");
+        } catch {}
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => resolve(null);
+      request.onblocked = () => resolve(null);
+    });
+  } catch {
+    return Promise.resolve(null);
+  }
+})();
+async function zhThinkingPersistentKey(key) {
+  try {
+    const bytes = new TextEncoder().encode(key);
+    const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+    return "v1:" + Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
+  } catch {
+    return null;
+  }
+}
+function zhThinkingRead(db, key) {
+  return new Promise(resolve => {
+    try {
+      const request = db.transaction("translations", "readonly").objectStore("translations").get(key);
+      request.onsuccess = () => resolve(typeof request.result === "string" && request.result.trim() ? request.result : null);
+      request.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+function zhThinkingWrite(db, key, translation) {
+  return new Promise(resolve => {
+    try {
+      const transaction = db.transaction("translations", "readwrite");
+      transaction.objectStore("translations").put(translation, key);
+      transaction.oncomplete = resolve;
+      transaction.onerror = resolve;
+      transaction.onabort = resolve;
+    } catch {
+      resolve();
+    }
+  });
+}
 function ZhThinking({ text, active = false, environmentId, threadId, render }) {
   const registry = (0,Z.useContext)(Qn);
   const [original, setOriginal] = (0,Z.useState)(false);
   const [, refresh] = (0,Z.useReducer)(n => n + 1, 0);
   const [attempt, retry] = (0,Z.useReducer)(n => n + 1, 0);
-  const key = JSON.stringify([environmentId, threadId, text]);
+  const key = JSON.stringify(["zh-tw-thinking-v1", environmentId, threadId, text]);
   const needsTranslation = /[A-Za-z]{2}/.test(text ?? "");
   const entry = zhThinkingResults.get(key);
   (0,Z.useEffect)(() => {
@@ -18,9 +69,16 @@ function ZhThinking({ text, active = false, environmentId, threadId, render }) {
       // One completed block per request; serialize to avoid competing with resume bursts.
       zhThinkingQueue = zhThinkingQueue.catch(() => {}).then(async () => {
         try {
-          const result = await zhTranslateRequest(registry, environmentId, threadId, text);
-          if (typeof result.translation !== "string" || !result.translation.trim()) throw Error("翻譯結果為空白。");
-          current.translation = result.translation;
+          const db = await zhThinkingDatabase;
+          const storageKey = db ? await zhThinkingPersistentKey(key) : null;
+          const cached = storageKey ? await zhThinkingRead(db, storageKey) : null;
+          if (cached) current.translation = cached;
+          else {
+            const result = await zhTranslateRequest(registry, environmentId, threadId, text);
+            if (typeof result.translation !== "string" || !result.translation.trim()) throw Error("翻譯結果為空白。");
+            current.translation = result.translation;
+            if (storageKey) await zhThinkingWrite(db, storageKey, result.translation);
+          }
           current.status = "done";
         } catch (error) {
           current.error = error.message || "思考翻譯失敗。";

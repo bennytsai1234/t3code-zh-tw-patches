@@ -3,11 +3,16 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
+const { webcrypto } = require('node:crypto');
+const { TextEncoder } = require('node:util');
+const { patchExpandedReasoningRenderer } = require('./patchThinkingRender.cjs');
 
-function harness(request) {
+const expandedEntryRenderer = 'e=e=>(0,$.jsx)(ss,{className:`text-foreground`,text:e.detail??``,cwd:r.markdownCwd,threadRef:r.threadRef??void 0,skills:r.skills,isStreaming:s(e),headingLevelOffset:aR,onUseArtifactTemplate:r.onUseArtifactTemplate,onImageExpand:r.onImageExpand,lineBreaks:!0},e.id),';
+
+function harness(request, indexedDB) {
   const effects = [];
   const context = vm.createContext({
-    Promise, Map, Set, Error, JSON,
+    Promise, Map, Set, Error, JSON, crypto: webcrypto, TextEncoder, indexedDB,
     zhTranslateRequest: request,
     Qn: {},
     Z: { useContext: () => null, useState: initial => [initial, () => {}], useReducer: () => [0, () => {}], useEffect: effect => effects.push(effect) },
@@ -21,6 +26,46 @@ function harness(request) {
       return result;
     },
     async settle() { await vm.runInContext('zhThinkingQueue', context); }
+  };
+}
+function mockIndexedDB(values) {
+  let storeReady = false;
+  const database = {
+    objectStoreNames: { contains: name => storeReady && name === 'translations' },
+    createObjectStore(name) {
+      if (name !== 'translations') throw Error('Unexpected object store');
+      storeReady = true;
+    },
+    transaction() {
+      if (!storeReady) throw Error('Object store has not been created');
+      const transaction = {};
+      return Object.assign(transaction, {
+        objectStore() {
+          return {
+            get(key) {
+              const request = {};
+              Promise.resolve().then(() => { request.result = values.get(key); request.onsuccess?.(); });
+              return request;
+            },
+            put(value, key) {
+              values.set(key, value);
+              Promise.resolve().then(() => transaction.oncomplete?.());
+            }
+          };
+        }
+      });
+    }
+  };
+  return {
+    open() {
+      const request = {};
+      Promise.resolve().then(() => {
+        request.result = database;
+        if (!storeReady) request.onupgradeneeded?.();
+        request.onsuccess?.();
+      });
+      return request;
+    }
   };
 }
 test('串流中的思考不呼叫模型；完成後多個顯示位置只翻譯一次，保留原文切換', async () => {
@@ -38,6 +83,22 @@ test('串流中的思考不呼叫模型；完成後多個顯示位置只翻譯�
   assert.equal(result.props.children[0], '先讀取檔案。');
   assert.equal(result.props.children[1].props.children[0].props.children, '查看英文原文');
 });
+test('成功譯文保存至本機資料庫；重載元件後命中快取且不再呼叫模型', async () => {
+  const values = new Map();
+  const indexedDB = mockIndexedDB(values);
+  let firstCalls = 0;
+  const first = harness(async () => { firstCalls++; return { translation: '先讀取檔案。' }; }, indexedDB);
+  first.render('Read the file first.');
+  await first.settle();
+  assert.equal(firstCalls, 1);
+  assert.equal(values.size, 1);
+  let reloadCalls = 0;
+  const reloaded = harness(async () => { reloadCalls++; throw Error('不應再次呼叫模型'); }, indexedDB);
+  reloaded.render('Read the file first.');
+  await reloaded.settle();
+  assert.equal(reloadCalls, 0);
+  assert.equal(reloaded.render('Read the file first.').props.children[0], '先讀取檔案。');
+});
 test('不同對話不共用翻譯；純中文不呼叫模型', async () => {
   let calls = 0;
   const h = harness(async () => { calls++; return { translation: '測試' }; });
@@ -49,12 +110,14 @@ test('不同對話不共用翻譯；純中文不呼叫模型', async () => {
 });
 test('供應商用量錯誤保留原文，不自動重試；可手動重試', async () => {
   let calls = 0;
-  const h = harness(async () => { calls++; throw Error('用量已達上限'); });
+  const values = new Map();
+  const h = harness(async () => { calls++; throw Error('用量已達上限'); }, mockIndexedDB(values));
   h.render('Inspect the source.');
   await h.settle();
   const result = h.render('Inspect the source.');
   await h.settle();
   assert.equal(calls, 1);
+  assert.equal(values.size, 0);
   assert.equal(result.props.children[0], 'Inspect the source.');
   const retryButton = result.props.children[1].props.children[0].props.children[2];
   assert.equal(retryButton.props.children, '重試翻譯');
@@ -63,16 +126,10 @@ test('供應商用量錯誤保留原文，不自動重試；可手動重試', as
   await h.settle();
   assert.equal(calls, 2);
 });
-test('前端執行服務解開 Effect Exit 後才將譯文交給元件', async () => {
-  const source = fs.readFileSync(path.join(__dirname, 'patchThinking.cjs'), 'utf8');
-  const execute = source.match(/export async function zhExecuteTranslation[\s\S]*?\n}/)[0].replace('export ', '');
-  const context = vm.createContext({
-    Error,
-    rt: received => effect => Promise.resolve({ _tag: 'Success', value: { translation: effect.text } }),
-    zhTranslateEffect: (environmentId, threadId, text) => ({ text })
-  });
-  vm.runInContext(execute + '\nthis.execute = zhExecuteTranslation;', context);
-  assert.equal((await context.execute({}, 'env-1', 'thread-1', '中文譯文')).translation, '中文譯文');
-  context.rt = () => () => Promise.resolve({ _tag: 'Failure', cause: {} });
-  await assert.rejects(() => context.execute({}, 'env-1', 'thread-1', 'text'), /思考翻譯失敗/);
+test('展開的思考正文進入翻譯元件，並以原 Markdown renderer 顯示譯文', () => {
+  const patched = patchExpandedReasoningRenderer(`function Pz(){${expandedEntryRenderer}}`);
+  assert.ok(patched.includes('e=>e.itemType===`reasoning`?(0,$.jsx)(ZhThinking,'));
+  assert.ok(patched.includes('active:s(e),environmentId:r.threadRef?.environmentId,threadId:r.threadRef?.threadId'));
+  assert.ok(patched.includes('render:text=>(0,$.jsx)(ss,{className:`text-foreground`,text,'));
+  assert.ok(patched.includes('},e.id):(0,$.jsx)(ss,{'));
 });

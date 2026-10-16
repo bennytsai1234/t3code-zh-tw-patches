@@ -9,6 +9,7 @@
   "Auto": "自動", "Automatic": "自動", "Adaptive": "自適應", "Enabled": "啟用", "Disabled": "停用",
   "Standard": "標準", "Priority": "優先", "Balanced": "均衡", "On": "開啟", "Off": "關閉",
   "Ultrafast": "極速", "Ultrathink": "深度思考", "Ultra": "超高", "Extra High": "極高",
+  "xhigh effort plus multi-agent workflow orchestration": "極高思考程度，加上多代理工作流程編排",
   "Reasoning": "思考程度", "Service Tier": "服務層級",
   "2x speed, increased usage": "速度約 2 倍，用量較高"
 }
