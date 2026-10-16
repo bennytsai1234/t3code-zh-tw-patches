@@ -191,4 +191,6 @@ node tools/prepareNightly.cjs builds/0.0.46-nightly.20261015.3158/orig <輸出�
 - 前端模組檔名更新為 `runtime-D0ddCMLS`、`runtime-CpBx-VNw`、`_chat-D4Fgdsqn`、`utils-Hcg8Weh5`、`main-Optk7rV0`、`ProviderModelPicker-chYJxHjc`。思考區塊的 remark 外掛由 `Cz` 改名為 `Nz`，模型選擇器的標籤函式由 `lt`／`ut` 改名為 `ft`／`pt`，兩者內容與舊版相同；其餘使用到的壓縮識別字逐一比對，定義一致。
 - `patchLabels.cjs` 的三個版本限定接點找不到時改為直接報錯；舊版遇到檔名變更會略過而不提示。
 
-翻譯表使用 4,907 條、替換 6,845 處、100 個模組，與 Nightly 相同；顯示接點 528 個。這次同樣未補翻新版新增文案。驗證結果見 [VERIFICATION.md](VERIFICATION.md)。
+初次移植時翻譯表使用 4,907 條、替換 6,845 處、100 個模組，與 Nightly 相同；顯示接點 528 個。
+
+同日補翻：比對上游 `e6bbfdb9ffe8..81493efb71e8` 的介面原始碼，Beta 新增的顯示文字只有載入骨架的 `Loading {0}`（譯為「正在載入 {0}」）與版本階段 `Beta`（屬產品名，保留原文）；另補上漏翻的 `Account`（帳號）。logo 旁的 `Code` 原本被翻成「T3 程式碼」，改由 `translate.js` 對 JSX children 的 `Code` 保留原文，PR 分頁標籤仍顯示「程式碼」。補翻後使用 4,909 條、替換 6,849 處。驗證結果見 [VERIFICATION.md](VERIFICATION.md)。
