@@ -37,16 +37,16 @@ edit(/\/binCli-[^/]+\.mjs$/, src => {
   return once(src, ')), layerOtlpTracesProxyRoute, layerAssetRoute,', ')), layerZhThinkingTranslation, layerOtlpTracesProxyRoute, layerAssetRoute,');
 });
 // Environment-scoped request through the app's authenticated client (Bearer or DPoP, with nonce renewal).
-edit(/\/client\/assets\/runtime-D0ddCMLS\.js$/, src => src + '\n' + read('thinking-runtime.inc.js'));
-edit(/\/client\/assets\/_chat-D4Fgdsqn\.js$/, src => {
-  // The chat module itself imports these as yo, _c, te and Ie; separate names avoid its local shadowing.
-  src = ['import { zhTranslateEffect } from "./runtime-D0ddCMLS.js";',
-    'import { t as zhThinkingRuntime } from "./runtime-CpBx-VNw.js";',
-    'import { t as zhEnvironmentAtoms } from "./session-DTnVXC4r.js";',
-    'import { Jb as zhOptionToNullable, S_ as zhPending } from "./utils-Hcg8Weh5.js";', ''].join('\n') + src;
-  src = once(src, '(0,$.jsx)(Mo,{remarkPlugins:[Uo,[Nz,n.active?`Thinking`:`Thought`]],children:n.entry.detail??a})', '(0,$.jsx)(ZhThinking,{text:n.entry.detail??a,active:n.active,environmentId:r.activeThreadEnvironmentId,threadId:r.threadRef?.threadId,render:text=>(0,$.jsx)(Mo,{remarkPlugins:[Uo,[Nz,n.active?`Thinking`:`Thought`]],children:text})})');
-  src = once(src, '(0,$.jsx)(Mo,{remarkPlugins:[Uo,[Nz,n.toolLifecycleStatus===`inProgress`?`Thinking`:`Thought`]],children:n.detail??A})', '(0,$.jsx)(ZhThinking,{text:n.detail??A,active:n.toolLifecycleStatus===`inProgress`,environmentId:a.activeThreadEnvironmentId,threadId:a.threadRef?.threadId,render:text=>(0,$.jsx)(Mo,{remarkPlugins:[Uo,[Nz,n.toolLifecycleStatus===`inProgress`?`Thinking`:`Thought`]],children:text})})');
-  src = once(src, '(0,$.jsx)(ss,{text:r.text,cwd:e.cwd,threadRef:{environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId},lineBreaks:!0})', '(0,$.jsx)(ZhThinking,{text:r.text,environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId,render:text=>(0,$.jsx)(ss,{text,cwd:e.cwd,threadRef:{environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId},lineBreaks:!0})})');
+edit(/\/client\/assets\/runtime-Dk77ZTQi\.js$/, src => src + '\n' + read('thinking-runtime.inc.js'));
+edit(/\/client\/assets\/_chat-CUpeYEZL\.js$/, src => {
+  // Separate names from the chat module's own imports avoid its local shadowing.
+  src = ['import { zhTranslateEffect } from "./runtime-Dk77ZTQi.js";',
+    'import { t as zhThinkingRuntime } from "./runtime-eUbaXT1l.js";',
+    'import { t as zhEnvironmentAtoms } from "./session-BRHKkYwR.js";',
+    'import { XS as zhOptionToNullable, Sy as zhPending } from "./utils-CxoqT410.js";', ''].join('\n') + src;
+  src = once(src, '(0,$.jsx)(ic,{inline:!0,text:n.entry.detail??a,cwd:r.markdownCwd,parseRawHtml:!1,extraRemarkPlugins:[[tG,n.active?`Thinking`:`Thought`]]})', '(0,$.jsx)(ZhThinking,{text:n.entry.detail??a,active:n.active,environmentId:r.activeThreadEnvironmentId,threadId:r.threadRef?.threadId,render:text=>(0,$.jsx)(ic,{inline:!0,text,cwd:r.markdownCwd,parseRawHtml:!1,extraRemarkPlugins:[[tG,n.active?`Thinking`:`Thought`]]})})');
+  src = once(src, '(0,$.jsx)(ic,{inline:!0,text:n.detail??j,cwd:a.markdownCwd,parseRawHtml:!1,extraRemarkPlugins:[[tG,n.toolLifecycleStatus===`inProgress`?`Thinking`:`Thought`]]})', '(0,$.jsx)(ZhThinking,{text:n.detail??j,active:n.toolLifecycleStatus===`inProgress`,environmentId:a.activeThreadEnvironmentId,threadId:a.threadRef?.threadId,render:text=>(0,$.jsx)(ic,{inline:!0,text,cwd:a.markdownCwd,parseRawHtml:!1,extraRemarkPlugins:[[tG,n.toolLifecycleStatus===`inProgress`?`Thinking`:`Thought`]]})})');
+  src = once(src, '(0,$.jsx)(ic,{text:i.text,cwd:e.cwd,threadRef:{environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId},lineBreaks:!0})', '(0,$.jsx)(ZhThinking,{text:i.text,environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId,render:text=>(0,$.jsx)(ic,{text,cwd:e.cwd,threadRef:{environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId},lineBreaks:!0})})');
   src = patchExpandedReasoningRenderer(src);
   return src + '\n' + read('thinking-request.inc.js') + '\n' + read('thinking-client.inc.js');
 });

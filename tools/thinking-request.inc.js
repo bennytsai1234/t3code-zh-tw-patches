@@ -1,8 +1,8 @@
-// Appended to the pinned Beta chat module (_chat-D4Fgdsqn). zhThinkingRuntime is the app's atom runtime,
+// Appended to the pinned Beta chat module (_chat-CUpeYEZL). zhThinkingRuntime is the app's atom runtime,
 // zhEnvironmentAtoms its per-environment atoms. Like the module's own environment requests, the atom waits
 // (pending) until the environment's prepared connection exists, then runs the authenticated request.
 const zhThinkingAtoms = new Map();
-// Fh's own request timeout (180 s) plus 30 s for the environment connection to come up.
+// cg's own request timeout (180 s) plus 30 s for the environment connection to come up.
 const zhThinkingTimeoutMs = 210000;
 function zhTranslateRequest(registry, environmentId, threadId, text) {
   const key = JSON.stringify([environmentId, threadId, text]);

@@ -1,6 +1,6 @@
 # T3 Code 繁體中文與自動思考翻譯補丁
 
-適用 Windows **T3 Code (Beta) 0.1.0**，官方 commit **81493efb71e8**。此工具修改現有程式包，不升級 T3 Code，不匯入舊對話，不變更供應商、快捷鍵與外觀設定。不同版本會停止建置，需先重新移植補丁。
+適用 Windows **T3 Code (Beta) 0.1.1**，官方 commit **fe27e8e3dc12**。此工具修改現有程式包，不升級 T3 Code，不匯入舊對話，不變更供應商、快捷鍵與外觀設定。不同版本會停止建置，需先重新移植補丁。
 
 ## 目前安裝方式
 
@@ -10,9 +10,9 @@
 npm ci --prefix tools
 # 第一次套用前，從尚未修改的官方安裝保存原始程式包。
 $resources = "$env:LOCALAPPDATA\Programs\t3code\resources"
-New-Item -ItemType Directory -Path builds\0.1.0\orig -Force
-Copy-Item "$resources\app.asar", "$resources\server.asar" builds\0.1.0\orig
-node tools/build.cjs builds/0.1.0/orig builds/0.1.0/zh-release
+New-Item -ItemType Directory -Path builds\0.1.1\orig -Force
+Copy-Item "$resources\app.asar", "$resources\server.asar" builds\0.1.1\orig
+node tools/build.cjs builds/0.1.1/orig builds/0.1.1/zh-release
 ```
 
 建置會驗證兩份官方原始程式包的 SHA256，依序套用外觀修正、思考翻譯、固定介面翻譯及顯示標籤，並檢查所有修改後 JavaScript 的 V8 語法。請保留 `orig`，以後一律從它重建；不要將已修改的程式包當作原始輸入。
@@ -20,7 +20,7 @@ node tools/build.cjs builds/0.1.0/orig builds/0.1.0/zh-release
 儲存工作、完全關閉 T3 Code (Beta) 後，再執行：
 
 ```powershell
-.\tools\install.ps1 -Src .\builds\0.1.0\zh-release
+.\tools\install.ps1 -Src .\builds\0.1.1\zh-release
 # 安裝位置不同時，加上 -InstallDir 'D:\Apps\t3code'
 ```
 
@@ -195,3 +195,15 @@ node tools/prepareNightly.cjs builds/0.0.46-nightly.20261015.3158/orig <輸出�
 初次移植時翻譯表使用 4,907 條、替換 6,845 處、100 個模組，與 Nightly 相同；顯示接點 528 個。
 
 同日補翻：比對上游 `e6bbfdb9ffe8..81493efb71e8` 的介面原始碼，Beta 新增的顯示文字只有載入骨架的 `Loading {0}`（譯為「正在載入 {0}」）與版本階段 `Beta`（屬產品名，保留原文）；另補上漏翻的 `Account`（帳號）。logo 旁的 `Code` 原本被翻成「T3 程式碼」，改由 `translate.js` 對 JSX children 的 `Code` 保留原文，PR 分頁標籤仍顯示「程式碼」。補翻後使用 4,909 條、替換 6,849 處。驗證結果見 [VERIFICATION.md](VERIFICATION.md)。
+
+## 7. 2026-10-22 移植到 0.1.1
+
+官方 `v0.1.1`（commit `fe27e8e3dc12`）比 0.1.0 新 1,486 個上游 commit，前端改用原生 React Compiler，模組檔名與壓縮識別字全部改變。補丁改為只支援 0.1.1。
+
+- 外觀修正與後端思考翻譯不必修改即可套用。
+- 前端模組檔名更新為 `runtime-Dk77ZTQi`、`runtime-eUbaXT1l`、`session-BRHKkYwR`、`_chat-CUpeYEZL`、`utils-CxoqT410`、`main-DtHZmDQQ`、`ProviderModelPicker-DwqeOA30`。思考區塊改由共用的 Markdown 元件 `ic`（`inline` 模式加 `extraRemarkPlugins`）顯示，三個顯示接點照新結構改寫；展開工作記錄的接點只換了元件與常數名稱。附加程式借用的名稱逐一以新版同一位置的用法對應，並確認都是所在模組的最上層宣告。
+- 桌面選單新增數字鍵盤快捷鍵用的隱藏縮放項目，`實際大小`、`放大`、`縮小` 的出現次數改為 2、4、2。
+- 補翻 0.1.1 新增的顯示文字 275 條（`translations/client/18.json`）：連線診斷、T3 Connect 疑難排解、跨電腦加入專案、排程任務篩選與合併、EAS 模擬器主機、數學公式顯示、儲存空間回收、上下文壓縮提示等。傳給代理的工具說明與錯誤、Clerk 開發設定說明保留英文。
+- 順手修正 0.1.0 起就有的工作記錄摘要：原本譯成「已讀取 3 files」「已收到 1 update」，改為「已讀取 3 個檔案」「已收到 1 則更新」等；模型選單的「4 models」改為「4 個模型」。
+- 翻譯表共 5,356 條，本版本使用 5,126 條、替換 7,129 處、104 個模組；顯示接點 578 個。
+- 仍保留英文：PR 討論的「Show N older conversations」（英文複數片段無法單獨翻譯）、由伺服器傳來的對話預設標題 `New thread`，以及和 0.1.0 相同、被程式拿來比對的選項值。

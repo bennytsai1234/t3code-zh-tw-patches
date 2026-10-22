@@ -61,7 +61,7 @@ function zhThinkingWrite(db, key, translation) {
   });
 }
 function ZhThinking({ text, active = false, environmentId, threadId, render }) {
-  const registry = (0,Z.useContext)(Qn);
+  const registry = (0,Z.useContext)(pt);
   const [original, setOriginal] = (0,Z.useState)(false);
   const [, refresh] = (0,Z.useReducer)(n => n + 1, 0);
   const [attempt, retry] = (0,Z.useReducer)(n => n + 1, 0);

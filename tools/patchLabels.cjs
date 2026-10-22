@@ -45,8 +45,8 @@ for (const [file, entry] of archive.files) {
     }
   });
   // These two getters are the picker library's item-to-label interface, not option values.
-  if (/\/ProviderModelPicker-chYJxHjc\.js$/.test(file)) {
-    const getters = [...src.matchAll(/function (?:ft|pt)\(e\)\{return e\.label\}/g)];
+  if (/\/ProviderModelPicker-DwqeOA30\.js$/.test(file)) {
+    const getters = [...src.matchAll(/function (?:At|jt)\(e\)\{return e\.label\}/g)];
     if (getters.length !== 2) throw Error('找不到模型選擇器的兩個標籤函式。');
     for (const match of getters) {
       const start = match.index + match[0].indexOf('e.label');
@@ -54,23 +54,23 @@ for (const [file, entry] of archive.files) {
     }
     pinned.delete('picker');
   }
-  if (/\/utils-Hcg8Weh5\.js$/.test(file)) {
+  if (/\/utils-CxoqT410\.js$/.test(file)) {
     const from = 'let{label:ne}=ee,re=';
     if (src.split(from).length !== 2) throw Error('找不到模型選項的最終顯示標籤。');
     const start = src.indexOf(from);
     edits.push({ start, end: start + from.length, text: 'let{label:zhOptionLabel}=ee,ne=zhDisplayLabel(zhOptionLabel),re=' });
-    // xZ returns the server's option label for the composer trigger, menu rows and summaries; display-only.
+    // aX returns the server's option label for the composer trigger, menu rows and summaries; display-only.
     const trigger = 'return e.options.find(e=>e.id===r)?.label??';
     if (src.split(trigger).length !== 2) throw Error('找不到選項標籤的回傳位置。');
     const triggerStart = src.indexOf(trigger);
     edits.push({ start: triggerStart, end: triggerStart + trigger.length, text: 'return zhDisplayLabel(e.options.find(e=>e.id===r)?.label)??' });
     pinned.delete('utils');
   }
-  if (/\/main-Optk7rV0\.js$/.test(file)) {
-    const from = 'function sk(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
+  if (/\/main-DtHZmDQQ\.js$/.test(file)) {
+    const from = 'function sO(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
     if (src.split(from).length !== 2) throw Error('找不到更新項目數量的顯示函式。');
     const start = src.indexOf(from);
-    edits.push({ start, end: start + from.length, text: 'function sk(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
+    edits.push({ start, end: start + from.length, text: 'function sO(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
     pinned.delete('main');
   }
   if (!edits.length) continue;

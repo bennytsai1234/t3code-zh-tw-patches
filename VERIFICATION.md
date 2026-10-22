@@ -1,4 +1,18 @@
-# 2026-10-16 驗證紀錄
+# 2026-10-22 驗證紀錄（0.1.1）
+
+適用官方版本 T3 Code `0.1.1`，commit `fe27e8e3dc12`。
+
+- 官方安裝檔 `T3-Code-0.1.1-x64.exe` 的 SHA256 與 GitHub 發行頁的 digest 相符，SHA512 與 `latest.yml` 相符。由它解出的官方原始 `app.asar` SHA256：`15e6418760a9a1d71cf5f6f9daae968f66773277597ae586f195877dbc1f1c13`；`server.asar`：`ca8f2d9e0686cff1c2024ed978e7732290cc444081852eb2decaab0f25afcd0c`。
+- 完整建置通過，每個變更後的 JavaScript 都通過 V8 語法檢查；附加程式借用的名稱（環境請求的 `gi`、`lp`、`kp`、`C`、`e`、`Tg`、`cg`、`fa`、`z`、`k`，聊天模組的 `Z`、`$`、`pt`、`ic`、`tG`）都是所在模組的最上層宣告，對應的工具函式與 0.1.0 為同一實作（例如 `pt` 與舊版 `Qn` 都是 atom registry 的 React context）。
+- `npm test --prefix tools` 15 項通過。
+- 獨立資料目錄、3899 連接埠的測試伺服器正常啟動，首頁 HTTP 200，思考翻譯路由未登入時回傳 401。配對後介面顯示繁體中文，模型選單的思考程度顯示「中」，logo 旁仍為 `Code`。
+- 後端翻譯路由在瀏覽器以本機工作階段實際呼叫，13.4 秒傳回「我應該在 3:40 上加 2 小時，得到 5:40，再加 35 分鐘，得到 6:15。」。
+- 在頁面內動態 import 出貨的 `runtime-Dk77ZTQi`、`runtime-eUbaXT1l`、`session-BRHKkYwR`、`utils-CxoqT410`，從 React 樹取得 App 的 atom registry，照 `thinking-request.inc.js` 的方式執行 `zhTranslateEffect`：等待環境連線、經內建環境認證請求送出，13.3 秒取得「編輯解析器之前，先檢查失敗的測試。」。
+- 重新整理既有對話後，展開的工作記錄顯示「已收到 1 則更新」。
+
+未測：GPT-6-Astra 與 Claude Sonnet 5.5 各送一則測試訊息，兩者都沒有產生可顯示的思考內容，所以四個思考顯示接點與本機快取命中沒有在畫面上實際看到，由單元測試與建置輸出確認；DPoP 授權更新需要遠端中繼連線，未實測；尚未安裝到正式的 T3 Code。
+
+# 2026-10-16 驗證紀錄（0.1.0）
 
 適用官方版本 T3 Code (Beta) `0.1.0`，commit `81493efb71e8`。
 

@@ -164,7 +164,7 @@
   "Context compacted {0} → {1} tokens": "上下文已從 {0} 壓縮至 {1} 個權杖",
   "Watching {0} {1}": "正在追蹤 {0} {1}",
   "Stopped watching {0} {1}": "已停止追蹤 {0} {1}",
-  "Created {0} {1}": "已建立 {0} {1}",
+  "Created {0} {1}": "已建立 {0} 個對話",
   "Waiting on {0} ": "正在等待 {0} ",
   "Waiting on": "正在等待",
   "Preparing workspace": "正在準備工作區",
