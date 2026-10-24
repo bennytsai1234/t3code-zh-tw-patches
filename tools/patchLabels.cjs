@@ -45,7 +45,7 @@ for (const [file, entry] of archive.files) {
     }
   });
   // These two getters are the picker library's item-to-label interface, not option values.
-  if (/\/ProviderModelPicker-DwqeOA30\.js$/.test(file)) {
+  if (/\/ProviderModelPicker-BRVwDCTj\.js$/.test(file)) {
     const getters = [...src.matchAll(/function (?:At|jt)\(e\)\{return e\.label\}/g)];
     if (getters.length !== 2) throw Error('找不到模型選擇器的兩個標籤函式。');
     for (const match of getters) {
@@ -54,7 +54,7 @@ for (const [file, entry] of archive.files) {
     }
     pinned.delete('picker');
   }
-  if (/\/utils-CxoqT410\.js$/.test(file)) {
+  if (/\/utils-BBD4QrsS\.js$/.test(file)) {
     const from = 'let{label:ne}=ee,re=';
     if (src.split(from).length !== 2) throw Error('找不到模型選項的最終顯示標籤。');
     const start = src.indexOf(from);
@@ -66,11 +66,11 @@ for (const [file, entry] of archive.files) {
     edits.push({ start: triggerStart, end: triggerStart + trigger.length, text: 'return zhDisplayLabel(e.options.find(e=>e.id===r)?.label)??' });
     pinned.delete('utils');
   }
-  if (/\/main-DtHZmDQQ\.js$/.test(file)) {
-    const from = 'function sO(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
+  if (/\/main-C_wsPjHT\.js$/.test(file)) {
+    const from = 'function nE(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
     if (src.split(from).length !== 2) throw Error('找不到更新項目數量的顯示函式。');
     const start = src.indexOf(from);
-    edits.push({ start, end: start + from.length, text: 'function sO(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
+    edits.push({ start, end: start + from.length, text: 'function nE(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
     pinned.delete('main');
   }
   if (!edits.length) continue;

@@ -1,4 +1,4 @@
-// Appended to the pinned Beta chat module (_chat-CUpeYEZL). zhThinkingRuntime is the app's atom runtime,
+// Appended to the pinned Beta chat module (_chat-BdvROAFK). zhThinkingRuntime is the app's atom runtime,
 // zhEnvironmentAtoms its per-environment atoms. Like the module's own environment requests, the atom waits
 // (pending) until the environment's prepared connection exists, then runs the authenticated request.
 const zhThinkingAtoms = new Map();

@@ -11,12 +11,12 @@ function harness(attempts, fhResult) {
   const done = value => ({ *[Symbol.iterator]() { return value; } });
   const context = vm.createContext({
     URL, JSON, Error, globalThis: {},
-    z: generator => ({ run: () => { const it = generator(); let step = it.next(); while (!step.done) step = it.next(); return step.value; } }),
-    gi: tag => done({ _tag: 'Some', value: tag }),
-    e: option => option._tag === 'None',
-    C: 'session', lp: 'signer', kp: 'remote', Tg: class {},
-    k: () => effect => effect,
-    fa: run => ({ run }),
+    P: generator => ({ run: () => { const it = generator(); let step = it.next(); while (!step.done) step = it.next(); return step.value; } }),
+    Hr: tag => done({ _tag: 'Some', value: tag }),
+    wo: option => option._tag === 'None',
+    ur: 'session', lp: 'signer', kp: 'remote', Tg: class {},
+    E: () => effect => effect,
+    y: run => ({ run }),
     cg: options => {
       seen.options = options;
       for (const origin of attempts) {
