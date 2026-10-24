@@ -1,8 +1,8 @@
 {
 "Compact idle threads": "壓縮閒置對話",
 "compact idle threads": "閒置對話壓縮",
-"When to compact an idle Claude thread over 200,000 tokens: after you return, just before its prompt cache expires, or never. Each Claude provider can override this.": "閒置且超過 200,000 token 的 Claude 對話何時壓縮：在你回來後、提示快取到期前，或永不壓縮。每個 Claude 供應商都可以覆寫此設定。",
-"When to compact an idle thread over 200,000 tokens: after you return, just before its prompt cache expires, or never. Overrides the default in General settings.": "閒置且超過 200,000 token 的對話何時壓縮：在你回來後、提示快取到期前，或永不壓縮。會覆寫一般設定中的預設值。",
+"When to compact an idle Claude thread over 200,000 tokens: after you return, just before its prompt cache expires, or never. Each Claude provider can override this.": "閒置且超過 200,000 個權杖的 Claude 對話何時壓縮：在你回來後、提示快取到期前，或永不壓縮。每個 Claude 供應商都可以覆寫此設定。",
+"When to compact an idle thread over 200,000 tokens: after you return, just before its prompt cache expires, or never. Overrides the default in General settings.": "閒置且超過 200,000 個權杖的對話何時壓縮：在你回來後、提示快取到期前，或永不壓縮。會覆寫一般設定中的預設值。",
 "When you return": "在你回來後",
 "Before the cache expires (beta)": "快取到期前（beta）",
 "Use default": "使用預設值",

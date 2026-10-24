@@ -99,7 +99,7 @@
 "Custom Claude home and config directory. Keeps .claude.json and .claude separate.": "自訂 Claude 主目錄與設定資料夾，.claude.json 和 .claude 會分開保存。",
 "Additional CLI arguments passed on session start.": "工作階段啟動時傳入的額外 CLI 參數。",
 "Auto-compact after": "自動壓縮門檻",
-"Compact after 100,000 to 1,000,000 tokens. Leave empty to use Claude's default.": "在 100,000 到 1,000,000 token 之間壓縮，留空則使用 Claude 的預設值。",
+"Compact after 100,000 to 1,000,000 tokens. Leave empty to use Claude's default.": "在 100,000 到 1,000,000 個權杖之間壓縮，留空則使用 Claude 的預設值。",
 "Path to the Cursor agent binary.": "Cursor 代理執行檔路徑。",
 "API endpoint": "API 端點",
 "Override the Cursor API endpoint for this instance.": "覆寫此執行個體的 Cursor API 端點。",
