@@ -173,3 +173,44 @@ test('程式碼被移到不同區塊時拒絕譯文', () => {
   assert.equal(prepared.input, '⟦T3ZH0X0⟧Title⟦T3ZH0X1⟧Use ⟦T3ZH0X2⟧.');
   assert.throws(() => prepared.restore('⟦T3ZH0X0⟧標題⟦T3ZH0X2⟧⟦T3ZH0X1⟧使用。'), /未保留回覆格式/);
 });
+
+test('段尾行內程式碼可按中文語序移動，後面的空白行維持原位', () => {
+  const original = 'Run `npm test` in `src/app.js`\n\nDone.';
+  const point = (start, end) => ({ start: { offset: start }, end: { offset: end } });
+  function parser(value) {
+    const isOriginal = value === original;
+    const code = name => {
+      const start = value.indexOf('`' + name + '`');
+      return { type: 'inlineCode', value: name, position: point(start, start + name.length + 2) };
+    };
+    if (!isOriginal) return { type: 'root', children: [
+      { type: 'paragraph', children: [code('src/app.js'), code('npm test')] },
+      { type: 'paragraph', children: [] }
+    ] };
+    const textNode = (start, end) => ({ type: 'text', position: point(start, end) });
+    const command = code('npm test'), file = code('src/app.js');
+    const endOfFirstParagraph = file.position.end.offset;
+    return { type: 'root', position: point(0, value.length), children: [
+      { type: 'paragraph', position: point(0, endOfFirstParagraph), children: [
+        textNode(0, command.position.start.offset), command,
+        textNode(command.position.end.offset, file.position.start.offset), file
+      ] },
+      { type: 'paragraph', position: point(endOfFirstParagraph + 2, value.length), children: [textNode(endOfFirstParagraph + 2, value.length)] }
+    ] };
+  }
+  const prepared = harness(async () => {}, parser).prepare(original);
+  assert.equal(prepared.input, 'Run ⟦T3ZH0X0⟧ in ⟦T3ZH0X1⟧⟦T3ZH0X2⟧Done.');
+  assert.equal(prepared.restore('在⟦T3ZH0X1⟧執行⟦T3ZH0X0⟧⟦T3ZH0X2⟧完成。'), '在`src/app.js`執行`npm test`\n\n完成。');
+});
+
+test('Unicode 路徑及含空格的 Windows 路徑以完整片段保護及還原', () => {
+  const parser = value => ({ type: 'root', children: [{ type: 'paragraph', children: [
+    { type: 'text', position: { start: { offset: 0 }, end: { offset: value.length } } }
+  ] }] });
+  for (const file of ['/資料/報告.txt', '資料/報告.txt', '"C:\\Users\\benny\\My Project\\src\\app.js"', 'C:\\Users\\benny\\My Long Project\\src\\my file.txt']) {
+    const original = `Open ${file} and continue.`;
+    const prepared = harness(async () => {}, parser).prepare(original);
+    assert.equal(prepared.input, 'Open ⟦T3ZH0X0⟧ and continue.');
+    assert.equal(prepared.restore('開啟 ⟦T3ZH0X0⟧，然後繼續。'), `開啟 ${file}，然後繼續。`);
+  }
+});

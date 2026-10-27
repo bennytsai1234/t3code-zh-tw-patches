@@ -2,18 +2,29 @@
 // Markdown syntax, code, links, paths and line breaks are restored locally from the original.
 function zhPrepareResponse(text) {
   const ranges = [];
-  const protectedText = /https?:\/\/[^\s<>()]+|[A-Za-z]:[\\/][^\s<>()`"'\[\]]+|(?:\.{1,2}|~)?\/[A-Za-z0-9_.~@-][^\s<>()`"'\[\]]*|[A-Za-z0-9_.-]+(?:[\\/][A-Za-z0-9_.-]+)+(?:[:#]\d+(?::\d+)?)?|[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+|\\[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]|&(?:#\d+|#x[\da-f]+|[a-z][\da-z]+);|\r?\n/gi;
+  const boundaries = new Set([0, text.length]);
+  const protectedText = /https?:\/\/[^\s<>()]+|(["'])(?:[A-Za-z]:[\\/]|(?:\.{1,2}|~)?\/)[^\r\n]*?\1|[A-Za-z]:[\\/][^\s<>()`"'\[\]]+(?:[ \t]+[^\s<>()`"'\[\]\\/]+)+[\\/][^\s<>()`"'\[\]]+|[A-Za-z]:[\\/][^\s<>()`"'\[\]]+|(?:\.{1,2}|~)?\/[^\s<>()`"'\[\]\/，。；：！？、][^\s<>()`"'\[\]，。；：！？、]*|[^\s<>()`"'\[\]\\/，。；：！？、]+(?:[\\/][^\s<>()`"'\[\]\\/，。；：！？、]+)+(?:[:#]\d+(?::\d+)?)?|[\p{L}\p{N}\p{M}_-]+(?:\.[\p{L}\p{N}\p{M}_-]+)+|\\[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]|&(?:#\d+|#x[\da-f]+|[a-z][\da-z]+);|\r?\n/giu;
   function addProse(start, end) {
     const value = text.slice(start, end);
-    let cursor = 0;
+    const protectedRanges = [];
     for (const match of value.matchAll(protectedText)) {
-      if (match.index > cursor) ranges.push([start + cursor, start + match.index]);
-      cursor = match.index + match[0].length;
+      const previous = protectedRanges.at(-1);
+      if (previous && /^[ \t]+$/.test(value.slice(previous[1], match.index))) previous[1] = match.index + match[0].length;
+      else protectedRanges.push([match.index, match.index + match[0].length]);
+    }
+    let cursor = 0;
+    for (const [protectedStart, protectedEnd] of protectedRanges) {
+      if (protectedStart > cursor) ranges.push([start + cursor, start + protectedStart]);
+      cursor = protectedEnd;
     }
     if (cursor < value.length) ranges.push([start + cursor, end]);
   }
   function walk(node) {
     const start = node.position?.start?.offset, end = node.position?.end?.offset;
+    if (Number.isInteger(start) && Number.isInteger(end) && start >= 0 && end <= text.length && start <= end) {
+      boundaries.add(start);
+      boundaries.add(end);
+    }
     if (node.type === "text") {
       if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end > text.length || start > end) {
         throw Error("無法辨識回覆的 Markdown 格式。");
@@ -55,6 +66,8 @@ function zhPrepareResponse(text) {
   do { prefix = `⟦T3ZH${prefixNumber++}X`; } while (text.includes(prefix));
   const originals = [], markers = [];
   let input = "", cursor = 0, prose = "";
+  const cuts = [...boundaries].sort((a, b) => a - b);
+  let cutIndex = 0;
   function protect(value) {
     if (!value) return;
     const marker = `${prefix}${originals.length}⟧`;
@@ -62,15 +75,24 @@ function zhPrepareResponse(text) {
     markers.push(marker);
     input += marker;
   }
+  function protectRange(start, end) {
+    while (cutIndex < cuts.length && cuts[cutIndex] <= start) cutIndex++;
+    while (cutIndex < cuts.length && cuts[cutIndex] < end) {
+      const cut = cuts[cutIndex++];
+      protect(text.slice(start, cut));
+      start = cut;
+    }
+    protect(text.slice(start, end));
+  }
   for (const [start, end] of ranges) {
     if (start < cursor) throw Error("無法辨識回覆的 Markdown 格式。");
-    protect(text.slice(cursor, start));
+    protectRange(cursor, start);
     const value = text.slice(start, end);
     input += value;
     prose += value + " ";
     cursor = end;
   }
-  protect(text.slice(cursor));
+  protectRange(cursor, text.length);
   return {
     input,
     needsTranslation: /[A-Za-z]{2}/.test(prose),
