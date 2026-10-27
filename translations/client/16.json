@@ -3,7 +3,7 @@
   "save GitHub account settings": "儲存 GitHub 帳號設定",
   "Sign in with ": "登入方式：",
   " on the server host, then rescan to choose accounts here.": "（在伺服器主機上），再重新掃描以在此選取帳號。",
-  "Choose which ": "選取各個 ",
+  "Choose which ": "選擇使用哪個 ",
   " login each GitHub host uses, or turn a host off.": " 登入帳號供 GitHub 主機使用，或停用主機。",
   "Hide GitHub accounts": "隱藏 GitHub 帳號",
   "Reveal GitHub accounts": "顯示 GitHub 帳號",

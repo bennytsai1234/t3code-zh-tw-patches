@@ -15,6 +15,7 @@ const targets = [];
 for (const [p, entry] of files) {
   if (!p.startsWith(PREFIX) || !p.endsWith(".js")) continue;
   const local = path.join(tmp, p.slice(PREFIX.length));
+  fs.mkdirSync(path.dirname(local), { recursive: true });
   fs.writeFileSync(local, read(entry));
   targets.push([p, local]);
 }

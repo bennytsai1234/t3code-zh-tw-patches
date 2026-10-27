@@ -1,4 +1,4 @@
-// This component runs inside the chat module, using its existing React aliases.
+// This component runs inside the timeline module, using its existing React aliases.
 const zhThinkingResults = new Map();
 let zhThinkingQueue = Promise.resolve();
 const zhThinkingDatabase = (() => {
@@ -61,7 +61,7 @@ function zhThinkingWrite(db, key, translation) {
   });
 }
 function ZhThinking({ text, active = false, environmentId, threadId, render }) {
-  const registry = (0,Z.useContext)(gt);
+  const registry = (0,Z.useContext)(zhThinkingRegistryContext);
   const [original, setOriginal] = (0,Z.useState)(false);
   const [, refresh] = (0,Z.useReducer)(n => n + 1, 0);
   const [attempt, retry] = (0,Z.useReducer)(n => n + 1, 0);

@@ -7,14 +7,14 @@ const { webcrypto } = require('node:crypto');
 const { TextEncoder } = require('node:util');
 const { patchExpandedReasoningRenderer } = require('./patchThinkingRender.cjs');
 
-const expandedEntryRenderer = 'e=e=>(0,$.jsx)(uc,{className:`text-foreground`,text:e.detail??``,cwd:r.markdownCwd,threadRef:r.threadRef??void 0,skills:r.skills,isStreaming:s(e),headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onImageExpand:r.onImageExpand,lineBreaks:!0},e.id),';
+const expandedEntryRenderer = 'e=e=>(0,$.jsx)(lr,{className:`text-foreground`,text:e.detail??``,cwd:r.markdownCwd,threadRef:r.threadRef??void 0,skills:r.skills,isStreaming:s(e),headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onImageExpand:r.onImageExpand,lineBreaks:!0},e.id),';
 
 function harness(request, indexedDB) {
   const effects = [];
   const context = vm.createContext({
     Promise, Map, Set, Error, JSON, crypto: webcrypto, TextEncoder, indexedDB,
     zhTranslateRequest: request,
-    gt: {},
+    zhThinkingRegistryContext: {},
     Z: { useContext: () => null, useState: initial => [initial, () => {}], useReducer: () => [0, () => {}], useEffect: effect => effects.push(effect) },
     $: { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) }
   });
@@ -138,6 +138,6 @@ test('展開的思考正文進入翻譯元件，並以原 Markdown renderer 顯�
   const patched = patchExpandedReasoningRenderer(`function Pz(){${expandedEntryRenderer}}`);
   assert.ok(patched.includes('e=>e.itemType===`reasoning`?(0,$.jsx)(ZhThinking,'));
   assert.ok(patched.includes('active:s(e),environmentId:r.threadRef?.environmentId,threadId:r.threadRef?.threadId'));
-  assert.ok(patched.includes('render:text=>(0,$.jsx)(uc,{className:`text-foreground`,text,'));
-  assert.ok(patched.includes('},e.id):(0,$.jsx)(uc,{'));
+  assert.ok(patched.includes('render:text=>(0,$.jsx)(lr,{className:`text-foreground`,text,'));
+  assert.ok(patched.includes('},e.id):(0,$.jsx)(lr,{'));
 });
