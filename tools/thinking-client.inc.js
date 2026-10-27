@@ -60,16 +60,21 @@ function zhThinkingWrite(db, key, translation) {
     }
   });
 }
-function ZhThinking({ text, active = false, environmentId, threadId, render }) {
+function ZhThinking({ text, active = false, environmentId, threadId, render, kind = "thinking" }) {
   const registry = (0,Z.useContext)(zhThinkingRegistryContext);
   const [original, setOriginal] = (0,Z.useState)(false);
   const [, refresh] = (0,Z.useReducer)(n => n + 1, 0);
   const [attempt, retry] = (0,Z.useReducer)(n => n + 1, 0);
-  const key = JSON.stringify(["zh-tw-thinking-v1", environmentId, threadId, text]);
-  const needsTranslation = /[A-Za-z]{2}/.test(text ?? "");
+  let prepared = null, preparationError = null;
+  if (kind === "response" && !active) {
+    try { prepared = zhPrepareResponse(text ?? ""); }
+    catch (error) { preparationError = error.message || "無法辨識回覆的 Markdown 格式。"; }
+  }
+  const key = JSON.stringify([kind === "response" ? "zh-tw-response-v1" : "zh-tw-thinking-v1", environmentId, threadId, text]);
+  const needsTranslation = kind === "response" && !active ? !!prepared?.needsTranslation : /[A-Za-z]{2}/.test(text ?? "");
   const entry = zhThinkingResults.get(key);
   (0,Z.useEffect)(() => {
-    if (active || !needsTranslation || !threadId || !environmentId) return;
+    if (active || !needsTranslation || !threadId || !environmentId || preparationError) return;
     let current = zhThinkingResults.get(key);
     if (!current) {
       current = { status: "pending", listeners: new Set() };
@@ -82,14 +87,14 @@ function ZhThinking({ text, active = false, environmentId, threadId, render }) {
           const cached = storageKey ? await zhThinkingRead(db, storageKey) : null;
           if (cached) current.translation = cached;
           else {
-            const result = await zhTranslateRequest(registry, environmentId, threadId, text);
+            const result = await zhTranslateRequest(registry, environmentId, threadId, prepared ? prepared.input : text);
             if (typeof result.translation !== "string" || !result.translation.trim()) throw Error("翻譯結果為空白。");
-            current.translation = result.translation;
-            if (storageKey) await zhThinkingWrite(db, storageKey, result.translation);
+            current.translation = prepared ? prepared.restore(result.translation) : result.translation;
+            if (storageKey) await zhThinkingWrite(db, storageKey, current.translation);
           }
           current.status = "done";
         } catch (error) {
-          current.error = error.message || "思考翻譯失敗。";
+          current.error = error.message || "翻譯失敗。";
           current.status = "error";
         }
         for (const listener of current.listeners) listener();
@@ -99,18 +104,21 @@ function ZhThinking({ text, active = false, environmentId, threadId, render }) {
     refresh();
     return () => current.listeners.delete(refresh);
   }, [key, active, needsTranslation, threadId, environmentId, attempt]);
+  if (preparationError) return (0,$.jsxs)("div", { children: [render(text), (0,$.jsx)("span", {
+    className: "mt-2 text-xs text-muted-foreground", children: preparationError
+  })] });
   if (!needsTranslation) return render(text);
   const controls = [];
   if (entry?.status === "done") controls.push((0,$.jsx)("button", {
     type: "button", className: "text-xs underline", onClick: e => { e.stopPropagation(); setOriginal(v => !v); },
-    children: original ? "查看繁體翻譯" : "查看英文原文"
+    children: original ? "查看繁體翻譯" : kind === "response" ? "查看原文" : "查看英文原文"
   }, "toggle"));
   else if (entry?.status === "error") controls.push((0,$.jsxs)("span", { children: [entry.error, " ", (0,$.jsx)("button", {
     type: "button", className: "text-xs underline", onClick: e => { e.stopPropagation(); zhThinkingResults.delete(key); retry(); }, children: "重試翻譯"
   })] }, "error"));
-  else controls.push((0,$.jsx)("span", { children: active ? "區塊完成後自動翻譯" : "正在翻譯思考內容…" }, "pending"));
-  return (0,$.jsxs)("span", { className: "whitespace-normal", children: [
+  else controls.push((0,$.jsx)("span", { children: active ? (kind === "response" ? "回覆完成後自動翻譯" : "區塊完成後自動翻譯") : (kind === "response" ? "正在翻譯回覆…" : "正在翻譯思考內容…") }, "pending"));
+  return (0,$.jsxs)(kind === "response" ? "div" : "span", { className: kind === "response" ? "min-w-0" : "whitespace-normal", children: [
     render(!original && entry?.status === "done" ? entry.translation : text),
-    (0,$.jsx)("span", { className: "ml-2 inline-flex gap-2 text-xs text-muted-foreground", children: controls })
+    (0,$.jsx)("span", { className: kind === "response" ? "mt-2 inline-flex gap-2 text-xs text-muted-foreground" : "ml-2 inline-flex gap-2 text-xs text-muted-foreground", children: controls })
   ] });
 }

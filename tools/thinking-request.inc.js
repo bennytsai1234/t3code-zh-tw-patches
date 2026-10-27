@@ -33,10 +33,10 @@ function zhTranslateRequest(registry, environmentId, threadId, text) {
     const finish = result => {
       if (finished || result._tag === "Initial" || result.waiting) return;
       if (result._tag === "Success") settle(() => resolve(result.value));
-      else settle(() => reject(Error("思考翻譯失敗，請確認環境連線、文字生成模型與可用額度。")));
+      else settle(() => reject(Error("翻譯失敗，請確認環境連線、文字生成模型與可用額度。")));
     };
     const timer = setTimeout(() => {
-      if (!finished) settle(() => reject(Error("思考翻譯逾時，環境可能尚未連線；可手動重試。")));
+      if (!finished) settle(() => reject(Error("翻譯逾時，環境可能尚未連線；可手動重試。")));
     }, zhThinkingTimeoutMs);
     unsubscribe = registry.subscribe(atom, finish, { immediate: false });
     if (finished) unsubscribe();

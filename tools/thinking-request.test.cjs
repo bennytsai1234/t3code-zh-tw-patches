@@ -72,7 +72,7 @@ test('失敗結果回傳繁中錯誤訊息；手動重試時建立新的請求',
   const h = harness();
   const p = h.request('env-1', 'thread-1', 'Inspect the source.');
   h.emit(h.atomsMade[0], { _tag: 'Failure', waiting: false, cause: {} });
-  await assert.rejects(p, /思考翻譯失敗/);
+  await assert.rejects(p, /翻譯失敗/);
   assert.equal(h.listenerCount(), 0);
   h.request('env-1', 'thread-1', 'Inspect the source.');
   assert.equal(h.atomsMade.length, 2);

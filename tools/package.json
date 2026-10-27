@@ -4,7 +4,7 @@
   "description": "Pinned Beta Traditional Chinese and thinking translation patches",
   "private": true,
   "scripts": {
-    "test": "node --test thinking.test.cjs thinking-request.test.cjs thinking-runtime.test.cjs"
+    "test": "node --test thinking.test.cjs thinking-request.test.cjs thinking-runtime.test.cjs response.test.cjs"
   },
   "keywords": [],
   "author": "",

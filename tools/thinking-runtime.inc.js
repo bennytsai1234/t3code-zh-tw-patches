@@ -24,11 +24,11 @@ export function zhTranslateEffect(prepared, threadId, text) {
         });
         const result = await response.json().catch(() => ({}));
         if (response.status === 401) return { zhUnauthorized: true, error: result.error };
-        if (!response.ok) throw Error(result.error || "思考翻譯失敗。");
+        if (!response.ok) throw Error(result.error || "翻譯失敗。");
         return result;
       }); }
     }).pipe(Hd(pD, session.value));
-    if (result.zhUnauthorized) throw Error(result.error || "思考翻譯未通過環境驗證。");
+    if (result.zhUnauthorized) throw Error(result.error || "翻譯未通過環境驗證。");
     return result;
   });
 }

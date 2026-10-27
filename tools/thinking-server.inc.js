@@ -14,7 +14,7 @@ const layerZhThinkingTranslation = add$1("POST", "/api/zh-tw/thinking", gen$1(fu
   const registry = yield* ProviderInstanceRegistry;
   const instance = yield* registry.getInstance(settings.textGenerationModelSelection.instanceId);
   if (!instance?.textGeneration?.translateThinking) {
-    return jsonUnsafe({ error: "目前文字生成供應商不支援思考翻譯。" }, { status: 422 });
+    return jsonUnsafe({ error: "目前文字生成供應商不支援翻譯。" }, { status: 422 });
   }
   const result = yield* instance.textGeneration.translateThinking({
     cwd: projection.thread.worktreePath ?? project.value.workspaceRoot,
@@ -26,4 +26,4 @@ const layerZhThinkingTranslation = add$1("POST", "/api/zh-tw/thinking", gen$1(fu
   EnvironmentAuthInvalidError: toResponse,
   EnvironmentInternalError: toResponse,
   EnvironmentScopeRequiredError: toResponse
-}), catch_(() => succeed$1(jsonUnsafe({ error: "思考翻譯失敗，請確認文字生成模型與可用額度；可手動重試。" }, { status: 502 })))));
+}), catch_(() => succeed$1(jsonUnsafe({ error: "翻譯失敗，請確認文字生成模型與可用額度；可手動重試。" }, { status: 502 })))));
