@@ -66,12 +66,12 @@ function ZhThinking({ text, active = false, environmentId, threadId, render, kin
   const [, refresh] = (0,Z.useReducer)(n => n + 1, 0);
   const [attempt, retry] = (0,Z.useReducer)(n => n + 1, 0);
   let prepared = null, preparationError = null;
-  if (kind === "response" && !active) {
+  if (!active) {
     try { prepared = zhPrepareResponse(text ?? ""); }
     catch (error) { preparationError = error.message || "無法辨識回覆的 Markdown 格式。"; }
   }
   const key = JSON.stringify([kind === "response" ? "zh-tw-response-v1" : "zh-tw-thinking-v1", environmentId, threadId, text]);
-  const needsTranslation = kind === "response" && !active ? !!prepared?.needsTranslation : /[A-Za-z]{2}/.test(text ?? "");
+  const needsTranslation = !!prepared?.needsTranslation;
   const entry = zhThinkingResults.get(key);
   (0,Z.useEffect)(() => {
     if (active || !needsTranslation || !threadId || !environmentId || preparationError) return;
@@ -87,9 +87,9 @@ function ZhThinking({ text, active = false, environmentId, threadId, render, kin
           const cached = storageKey ? await zhThinkingRead(db, storageKey) : null;
           if (cached) current.translation = cached;
           else {
-            const result = await zhTranslateRequest(registry, environmentId, threadId, prepared ? prepared.input : text);
+            const result = await zhTranslateRequest(registry, environmentId, threadId, kind === "response" ? prepared.input : text);
             if (typeof result.translation !== "string" || !result.translation.trim()) throw Error("翻譯結果為空白。");
-            current.translation = prepared ? prepared.restore(result.translation) : result.translation;
+            current.translation = kind === "response" ? prepared.restore(result.translation) : result.translation;
             if (storageKey) await zhThinkingWrite(db, storageKey, current.translation);
           }
           current.status = "done";

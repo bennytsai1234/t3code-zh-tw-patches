@@ -134,6 +134,37 @@ test('只有程式碼的回覆不呼叫翻譯模型', async () => {
   assert.equal(calls, 0);
 });
 
+test('正文依第一個自然語言字元決定是否翻譯，不受後面的英文影響', async () => {
+  const parser = value => ({ type: 'root', children: [{ type: 'text', position: { start: { offset: 0 }, end: { offset: value.length } } }] });
+  const calls = [];
+  const h = harness(async (...args) => { calls.push(args); return { translation: args[3] }; }, parser);
+  for (const text of ['已完成 API 驗證。', '  1. 先確認 Forcepoint，再讀 README。', '確認完成。\n\nRead the file.', '123 😀', '日本語の説明 API']) {
+    assert.equal(h.render(text, true), text);
+    assert.equal(h.render(text), text);
+  }
+  await h.settle();
+  assert.equal(calls.length, 0);
+  h.render('  1. Read the API，接著處理中文。');
+  await h.settle();
+  assert.equal(calls.length, 1);
+});
+
+test('判定開頭時排除受保護的路徑、網址與程式碼', () => {
+  const textNode = (start, end) => ({ type: 'text', position: { start: { offset: start }, end: { offset: end } } });
+  const plain = value => ({ type: 'root', children: [textNode(0, value.length)] });
+  const h = harness(async () => {}, plain);
+  for (const prefix of ['https://example.com ', 'C:\\Project\\app.js ', '/資料/報告.txt ']) {
+    assert.equal(h.prepare(prefix + '已完成 API 驗證。').needsTranslation, false);
+    assert.equal(h.prepare(prefix + 'Read the report.').needsTranslation, true);
+  }
+  const source = '```js\nconst English = true;\n```\n\n已完成 API 驗證。';
+  const from = source.indexOf('已完成');
+  const codeFirst = harness(async () => {}, value => ({ type: 'root', children: [
+    { type: 'code', value: 'const English = true;' }, textNode(from, value.length)
+  ] }));
+  assert.equal(codeFirst.prepare(source).needsTranslation, false);
+});
+
 test('真實模型依中文語序調換同一段內的程式碼時，仍還原正確內容', () => {
   const original = '# Status\n\nRead the [manual](https://example.com/docs), then run `npm test` in `src/app.js`.\n\n```js\nconsole.log("Hello");\n```';
   function parser(value) {

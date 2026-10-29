@@ -1,5 +1,10 @@
 // Uses the timeline module's existing Markdown parser (Jp). Only prose is sent for translation;
 // Markdown syntax, code, links, paths and line breaks are restored locally from the original.
+function zhStartsWithEnglish(prose) {
+  // Ignore punctuation, whitespace and numbered-list prefixes. Other scripts stop detection.
+  const firstLetter = prose.match(/\p{L}/u)?.[0] ?? "";
+  return /^[A-Za-z]$/.test(firstLetter);
+}
 function zhPrepareResponse(text) {
   const ranges = [];
   const boundaries = new Set([0, text.length]);
@@ -95,7 +100,7 @@ function zhPrepareResponse(text) {
   protectRange(cursor, text.length);
   return {
     input,
-    needsTranslation: /[A-Za-z]{2}/.test(prose),
+    needsTranslation: zhStartsWithEnglish(prose),
     restore(translation) {
       const pattern = new RegExp(`${prefix}\\d+⟧`, "g");
       const found = translation.match(pattern) ?? [];

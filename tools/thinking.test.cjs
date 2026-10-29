@@ -13,12 +13,13 @@ function harness(request, indexedDB) {
   const effects = [];
   const context = vm.createContext({
     Promise, Map, Set, Error, JSON, crypto: webcrypto, TextEncoder, indexedDB,
+    Jp: { parse: text => ({ type: 'root', children: [{ type: 'text', position: { start: { offset: 0 }, end: { offset: text.length } } }] }) },
     zhTranslateRequest: request,
     zhThinkingRegistryContext: {},
     Z: { useContext: () => null, useState: initial => [initial, () => {}], useReducer: () => [0, () => {}], useEffect: effect => effects.push(effect) },
     $: { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) }
   });
-  vm.runInContext(fs.readFileSync(path.join(__dirname, 'thinking-client.inc.js'), 'utf8') + '\nthis.component = ZhThinking;', context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, 'response-markdown.inc.js'), 'utf8') + '\n' + fs.readFileSync(path.join(__dirname, 'thinking-client.inc.js'), 'utf8') + '\nthis.component = ZhThinking;', context);
   return {
     render(text, active = false, threadId = 'thread-1') {
       const result = context.component({ text, active, threadId, environmentId: 'env-1', render: t => t });
@@ -115,6 +116,21 @@ test('不同對話不共用翻譯；純中文不呼叫模型', async () => {
   h.render('Read file.', false, 'thread-2');
   await h.settle();
   assert.equal(calls, 2);
+});
+
+test('思考摘要依開頭判定；中文夾英文不送請求，英文開頭仍翻譯', async () => {
+  const calls = [];
+  const h = harness(async (...args) => { calls.push(args); return { translation: '先檢查 API。' }; });
+  for (const text of ['已完成 API 驗證。', '  1. 先確認 Forcepoint，再讀 README。', '「驗證完成」 OK', '123 😀', '確認完成。\n\nRead the file.']) {
+    assert.equal(h.render(text, true), text);
+    assert.equal(h.render(text), text);
+  }
+  await h.settle();
+  assert.equal(calls.length, 0);
+  h.render('  1. Inspect the API，接著處理中文。');
+  await h.settle();
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][3], '  1. Inspect the API，接著處理中文。');
 });
 test('供應商用量錯誤保留原文，不自動重試；可手動重試', async () => {
   let calls = 0;
