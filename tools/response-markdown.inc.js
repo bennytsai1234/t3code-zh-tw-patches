@@ -1,4 +1,4 @@
-// Uses the timeline module's existing Markdown parser (Jp). Only prose is sent for translation;
+// Uses the timeline module's existing Markdown parser (nf). Only prose is sent for translation;
 // Markdown syntax, code, links, paths and line breaks are restored locally from the original.
 function zhStartsWithEnglish(prose) {
   // Ignore punctuation, whitespace and numbered-list prefixes. Other scripts stop detection.
@@ -45,7 +45,7 @@ function zhPrepareResponse(text) {
     }
     if (Array.isArray(node.children)) for (const child of node.children) walk(child);
   }
-  const tree = Jp.parse(text);
+  const tree = nf.parse(text);
   walk(tree);
   function structure(node) {
     if (node.type === "text") return null;
@@ -109,7 +109,7 @@ function zhPrepareResponse(text) {
         throw Error("譯文未保留回覆格式，已保留原文；可手動重試。");
       }
       const restored = translation.replace(pattern, marker => originals[Number(marker.slice(prefix.length, -1))]);
-      if (JSON.stringify(structure(Jp.parse(restored))) !== originalStructure) {
+      if (JSON.stringify(structure(nf.parse(restored))) !== originalStructure) {
         throw Error("譯文未保留回覆格式，已保留原文；可手動重試。");
       }
       return restored;

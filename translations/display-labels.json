@@ -11,5 +11,11 @@
   "Ultrafast": "極速", "Ultrathink": "深度思考", "Ultra": "超高", "Extra High": "極高",
   "xhigh effort plus multi-agent workflow orchestration": "極高思考程度，加上多代理工作流程編排",
   "Reasoning": "思考程度", "Service Tier": "服務層級",
-  "2x speed, increased usage": "速度約 2 倍，用量較高"
+  "2x speed, increased usage": "速度約 2 倍，用量較高",
+  "Last user message": "最後一則使用者訊息", "Created at": "建立時間", "Manual": "手動",
+  "System default": "系統預設", "12-hour": "12 小時制", "24-hour": "24 小時制",
+  "Today": "今天", "Tomorrow": "明天", "Monday": "星期一", "Tuesday": "星期二",
+  "Wednesday": "星期三", "Thursday": "星期四", "Friday": "星期五",
+  "Saturday": "星期六", "Sunday": "星期日", "In 1 hour": "1 小時後",
+  "In 3 hours": "3 小時後", "Next week": "下週"
 }

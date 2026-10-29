@@ -39,38 +39,48 @@ for (const [file, entry] of archive.files) {
     const callee = src.slice(call.callee.start, call.callee.end);
     if (!/\.jsxs?\)?$/.test(callee)) return;
     const value = node.value;
-    if ((key !== 'children' && ['Identifier','MemberExpression'].includes(value.type)) ||
+    if ((key === 'children' && /\/SettingsPanels-XqqFo_Rd\.js$/.test(file) && ['Identifier', 'MemberExpression'].includes(value.type)) ||
+        (key !== 'children' && ['Identifier','MemberExpression'].includes(value.type)) ||
         (value.type === 'MemberExpression' && ['label', 'displayLabel', 'optionLabel', 'effortLabel', 'title', 'description'].includes(value.property.name))) {
       edits.push({ start: value.start, end: value.end, text: `zhDisplayLabel(${src.slice(value.start, value.end)})` });
     }
   });
   // These two getters are the picker library's item-to-label interface, not option values.
-  if (/\/ProviderModelPicker-DOzkRZrx\.js$/.test(file)) {
-    const getters = [...src.matchAll(/function (?:Lt|Rt)\(e\)\{return e\.label\}/g)];
+  if (/\/ProviderModelPicker-DnEKyjCc\.js$/.test(file)) {
+    const getters = [...src.matchAll(/function (?:Mt|Nt)\(e\)\{return e\.(?:label|fullLabel)\}/g)];
     if (getters.length !== 2) throw Error('找不到模型選擇器的兩個標籤函式。');
     for (const match of getters) {
-      const start = match.index + match[0].indexOf('e.label');
-      edits.push({ start, end: start + 'e.label'.length, text: 'zhDisplayLabel(e.label)' });
+      const value = match[0].includes('e.fullLabel') ? 'e.fullLabel' : 'e.label';
+      const start = match.index + match[0].indexOf(value);
+      edits.push({ start, end: start + value.length, text: `zhDisplayLabel(${value})` });
     }
     pinned.delete('picker');
   }
-  if (/\/utils-hMpAMf30\.js$/.test(file)) {
-    const from = 'let{label:ne}=te,re=';
+  if (/\/utils-rIXHk8ww\.js$/.test(file)) {
+    const from = 'let{label:f,speedLabel:_,otherLabels:v}=dWe(';
     if (src.split(from).length !== 2) throw Error('找不到模型選項的最終顯示標籤。');
     const start = src.indexOf(from);
-    edits.push({ start, end: start + from.length, text: 'let{label:zhOptionLabel}=te,ne=zhDisplayLabel(zhOptionLabel),re=' });
-    // aX returns the server's option label for the composer trigger, menu rows and summaries; display-only.
+    edits.push({ start, end: start + from.length, text: 'let{label:zhOptionLabel,speedLabel:_,otherLabels:v}=dWe(' });
+    const end = 'reportedModelSelection:g}),y=h===`codex`;';
+    if (src.split(end).length !== 2) throw Error('找不到模型選項顯示標籤的結尾。');
+    const endStart = src.indexOf(end);
+    edits.push({ start: endStart, end: endStart + end.length, text: 'reportedModelSelection:g}),f=zhDisplayLabel(zhOptionLabel),y=h===`codex`;' });
+    const visibleEffort = '"data-composer-control-label":!0,children:x';
+    if (src.split(visibleEffort).length !== 2) throw Error('找不到輸入區的思考程度顯示位置。');
+    const effortStart = src.indexOf(visibleEffort);
+    edits.push({ start: effortStart, end: effortStart + visibleEffort.length, text: '"data-composer-control-label":!0,children:zhDisplayLabel(x)' });
+    // XY returns the server's option label for the composer trigger, menu rows and summaries; display-only.
     const trigger = 'return e.options.find(e=>e.id===r)?.label??';
     if (src.split(trigger).length !== 2) throw Error('找不到選項標籤的回傳位置。');
     const triggerStart = src.indexOf(trigger);
     edits.push({ start: triggerStart, end: triggerStart + trigger.length, text: 'return zhDisplayLabel(e.options.find(e=>e.id===r)?.label)??' });
     pinned.delete('utils');
   }
-  if (/\/main-lZWM_z1N\.js$/.test(file)) {
-    const from = 'function AE(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
+  if (/\/main-B3fNAoW1\.js$/.test(file)) {
+    const from = 'function ME(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
     if (src.split(from).length !== 2) throw Error('找不到更新項目數量的顯示函式。');
     const start = src.indexOf(from);
-    edits.push({ start, end: start + from.length, text: 'function AE(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
+    edits.push({ start, end: start + from.length, text: 'function ME(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
     pinned.delete('main');
   }
   if (!edits.length) continue;

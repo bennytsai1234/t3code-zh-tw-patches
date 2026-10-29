@@ -19,7 +19,7 @@ function replaceOnce(source, from, to) {
   return source.replace(from, to);
 }
 const server = readArchive(path.join(root, 'server.asar'));
-const fontFiles = server.files.filter(([p]) => /\/client\/assets\/appearanceFonts-D5uPGYFl\.js$/.test(p));
+const fontFiles = server.files.filter(([p]) => /\/client\/assets\/appearanceFonts-BFmnXpD6\.js$/.test(p));
 if (fontFiles.length !== 1) throw new Error(`Expected one font module, got ${fontFiles.length}`);
 const [fontPath, fontEntry] = fontFiles[0];
 let fontSource = server.read(fontEntry).toString('utf8');
@@ -44,5 +44,5 @@ if (themeMatches.length !== 1) throw new Error(`Expected one theme listener, got
 main = replaceOnce(main, themeMatches[0][0], patches[4].to.replaceAll('withSpan(', themeMatches[0][1] + '('));
 check(main);
 writeArchive(path.join(root, 'app.asar'), path.join(dest, 'app-fixed.asar'), new Map([[mainPath, Buffer.from(main)]]));
-fs.writeFileSync(path.join(dest, 'appearance-report.json'), JSON.stringify({ version: '0.1.3', fontPath, patches: ['monospace cache and reduced font measurements', 'unhandledRejection handler', 'window appearance try/catch', 'theme event rejection handling'], optionalReactMemoPatch: 'not carried: old appearance route replaced upstream; documented as unnecessary' }, null, 2));
+fs.writeFileSync(path.join(dest, 'appearance-report.json'), JSON.stringify({ version: '0.1.4', fontPath, patches: ['monospace cache and reduced font measurements', 'unhandledRejection handler', 'window appearance try/catch', 'theme event rejection handling'], optionalReactMemoPatch: 'not carried: old appearance route replaced upstream; documented as unnecessary' }, null, 2));
 console.log('Appearance fixes prepared; all changed JavaScript passed V8 syntax checks.');

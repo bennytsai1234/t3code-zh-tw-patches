@@ -4,20 +4,20 @@ const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
 
-// Runs zhTranslateEffect with stand-ins for the runtime module's Effect helpers. The fake CJ plays the
+// Runs zhTranslateEffect with stand-ins for the runtime module's Effect helpers. The fake fJ plays the
 // attempts the real one makes: it asks url() for each attempt's endpoints, then builds that attempt's request.
 function harness(attempts, fhResult) {
   const seen = { urls: [], requests: [], options: null };
   const done = value => ({ *[Symbol.iterator]() { return value; } });
   const context = vm.createContext({
     URL, JSON, Error, globalThis: {},
-    Ku: generator => ({ run: () => { const it = generator(); let step = it.next(); while (!step.done) step = it.next(); return step.value; } }),
-    Bd: tag => done({ _tag: 'Some', value: tag }),
-    Zn: option => option._tag === 'None',
-    pD: 'session', JK: 'signer', aq: 'remote', vBe: class {},
-    Hd: () => effect => effect,
-    Lu: run => ({ run }),
-    CJ: options => {
+    qu: generator => ({ run: () => { const it = generator(); let step = it.next(); while (!step.done) step = it.next(); return step.value; } }),
+    Vd: tag => done({ _tag: 'Some', value: tag }),
+    er: option => option._tag === 'None',
+    FE: 'session', PK: 'signer', GK: 'remote', cze: class {},
+    Ud: () => effect => effect,
+    zu: run => ({ run }),
+    fJ: options => {
       seen.options = options;
       for (const origin of attempts) {
         seen.urls.push(options.url({ session: () => origin + 'api/auth/session' }));
