@@ -11,13 +11,13 @@ function harness(attempts, fhResult) {
   const done = value => ({ *[Symbol.iterator]() { return value; } });
   const context = vm.createContext({
     URL, JSON, Error, globalThis: {},
-    qu: generator => ({ run: () => { const it = generator(); let step = it.next(); while (!step.done) step = it.next(); return step.value; } }),
-    Vd: tag => done({ _tag: 'Some', value: tag }),
-    er: option => option._tag === 'None',
-    FE: 'session', PK: 'signer', GK: 'remote', cze: class {},
-    Ud: () => effect => effect,
-    zu: run => ({ run }),
-    fJ: options => {
+    Ru: generator => ({ run: () => { const it = generator(); let step = it.next(); while (!step.done) step = it.next(); return step.value; } }),
+    Ad: tag => done({ _tag: 'Some', value: tag }),
+    Qn: option => option._tag === 'None',
+    pD: 'session', NK: 'signer', WK: 'remote', fze: class {},
+    Md: () => effect => effect,
+    Au: run => ({ run }),
+    dJ: options => {
       seen.options = options;
       for (const origin of attempts) {
         seen.urls.push(options.url({ session: () => origin + 'api/auth/session' }));

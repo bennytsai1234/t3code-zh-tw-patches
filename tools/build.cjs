@@ -11,11 +11,11 @@ if (input === output) throw Error('原始與輸出目錄必須不同。');
 const app = readArchive(path.join(input, 'app.asar'));
 const packageEntry = app.files.find(([p]) => p === 'package.json');
 const pkg = JSON.parse(app.read(packageEntry[1]).toString('utf8'));
-const supported = '0.1.4';
+const supported = '0.1.5';
 if (pkg.version !== supported) throw Error(`此補丁只支援 ${supported}，實際為 ${pkg.version}。`);
 const officialHashes = {
-  'app.asar': '044e407f189a26c08da7e7d4a6021fc06f9c8190f7aee422f95e5c5dec577aa8',
-  'server.asar': '9da481e761c57cd9b4b7ee29abb197a524a2b624d3905657d89886e134a782a8'
+  'app.asar': '32ab6da61ab547d8e03f7a69bbad070783b67d1757165b711fd8980437ec3920',
+  'server.asar': '1ebe6e5150a2c2dccfb46d34b78fd0d6e0544923529cc77b3e93877b28cf64da'
 };
 for (const [name, expected] of Object.entries(officialHashes)) {
   if (crypto.createHash('sha256').update(fs.readFileSync(path.join(input, name))).digest('hex') !== expected) {
@@ -42,7 +42,7 @@ try {
   }
   const hashes = {};
   for (const name of ['app.asar', 'server.asar']) hashes[name] = crypto.createHash('sha256').update(fs.readFileSync(path.join(output, name))).digest('hex');
-  fs.writeFileSync(path.join(output, 'patch-manifest.json'), JSON.stringify({ version: supported, upstreamCommit: '783581d461dc', hashes }, null, 2) + '\n');
+  fs.writeFileSync(path.join(output, 'patch-manifest.json'), JSON.stringify({ version: supported, upstreamCommit: '6d450a428485', hashes }, null, 2) + '\n');
   console.log(`已建置 ${output}`);
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });

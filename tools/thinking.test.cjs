@@ -7,7 +7,7 @@ const { webcrypto } = require('node:crypto');
 const { TextEncoder } = require('node:util');
 const { patchExpandedReasoningRenderer } = require('./patchThinkingRender.cjs');
 
-const expandedEntryRenderer = 'e=e=>(0,$.jsx)(vr,{className:`text-foreground`,text:e.detail??``,cwd:r.markdownCwd,threadRef:r.threadRef??void 0,skills:r.skills,isStreaming:s(e),headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onImageExpand:r.onImageExpand,lineBreaks:!0},e.id),';
+const expandedEntryRenderer = 'e=e=>(0,Q.jsx)(br,{className:`text-foreground`,text:e.detail??``,cwd:r.markdownCwd,threadRef:r.threadRef??void 0,skills:r.skills,isStreaming:s(e),headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onImageExpand:r.onImageExpand,lineBreaks:!0},e.id),';
 
 function harness(request, indexedDB) {
   const effects = [];
@@ -152,8 +152,8 @@ test('供應商用量錯誤保留原文，不自動重試；可手動重試', as
 });
 test('展開的思考正文進入翻譯元件，並以原 Markdown renderer 顯示譯文', () => {
   const patched = patchExpandedReasoningRenderer(`function Pz(){${expandedEntryRenderer}}`);
-  assert.ok(patched.includes('e=>e.itemType===`reasoning`?(0,$.jsx)(ZhThinking,'));
+  assert.ok(patched.includes('e=>e.itemType===`reasoning`?(0,Q.jsx)(ZhThinking,'));
   assert.ok(patched.includes('active:s(e),environmentId:r.threadRef?.environmentId,threadId:r.threadRef?.threadId'));
-  assert.ok(patched.includes('render:text=>(0,$.jsx)(vr,{className:`text-foreground`,text,'));
-  assert.ok(patched.includes('},e.id):(0,$.jsx)(vr,{'));
+  assert.ok(patched.includes('render:text=>(0,Q.jsx)(br,{className:`text-foreground`,text,'));
+  assert.ok(patched.includes('},e.id):(0,Q.jsx)(br,{'));
 });
