@@ -34,7 +34,17 @@ function zhPrepareResponse(text) {
       if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end > text.length || start > end) {
         throw Error("無法辨識回覆的 Markdown 格式。");
       }
-      addProse(start, end);
+      // Markdown emphasis delimiters depend on adjacent whitespace. A model can
+      // remove the English word separator when joining Chinese sentences, making
+      // e.g. **完成。**接著 stop parsing as strong. Restore these spaces locally.
+      let proseStart = start, proseEnd = end;
+      if (/[*_~]/.test(text[start - 1] ?? "")) {
+        proseStart += text.slice(start, end).match(/^[ \t]+/)?.[0].length ?? 0;
+      }
+      if (/[*_~]/.test(text[end] ?? "")) {
+        proseEnd -= text.slice(proseStart, end).match(/[ \t]+$/)?.[0].length ?? 0;
+      }
+      addProse(proseStart, proseEnd);
       return;
     }
     // Shortcut references use the displayed text as the link target; translating it would break the link.

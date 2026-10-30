@@ -5,6 +5,23 @@ const path = require('node:path');
 const vm = require('node:vm');
 const { webcrypto } = require('node:crypto');
 const { TextEncoder } = require('node:util');
+const officialParser = require('./official-markdown-parser.cjs')();
+
+test('官方解析器：中文標點後的粗體及斜體保留必要邊界空白', { skip: !officialParser, timeout: 10000 }, () => {
+  const h = harness(async () => {}, officialParser);
+  for (const delimiter of ['**', '*', '_', '__', '~~']) {
+    const original = `Read ${delimiter}Done.${delimiter} Next.`;
+    const prepared = h.prepare(original);
+    const translation = prepared.input.replace(/Read\s*/, '請閱讀').replace('Done.', '完成。').replace(/\s*Next\./, '接著處理。');
+    assert.equal(prepared.restore(translation), `請閱讀 ${delimiter}完成。${delimiter} 接著處理。`);
+  }
+});
+
+test('官方解析器：遺失粗體標記仍拒絕譯文', { skip: !officialParser, timeout: 10000 }, () => {
+  const prepared = harness(async () => {}, officialParser).prepare('**Done.** Next.');
+  const translation = prepared.input.replace('Done.', '完成。').replace('Next.', '接著處理。');
+  assert.throws(() => prepared.restore(translation.replace(/⟦T3ZH0X\d+⟧/, '')), /未保留回覆格式/);
+});
 
 const source = '# Read the report\n\nUse `npm test` and [manual](https://example.com).\n\n```js\nconsole.log("secret");\n```\n\nOpen src/app.js.';
 function fixtureTree(value) {
