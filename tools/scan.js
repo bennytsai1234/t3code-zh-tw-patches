@@ -115,7 +115,7 @@ function scanFile(file, onString) {
     }
     const v = strValue(node);
     if (v == null) return;
-    onString({ node, value: v, ...contextOf(ancestors, node), src });
+    onString({ node, value: v, ...contextOf(ancestors, node), ancestors: ancestors.slice(), src });
   });
 }
 

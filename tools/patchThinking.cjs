@@ -38,6 +38,9 @@ edit(/\/binCli-[^/]+\.mjs$/, src => {
 });
 // Environment-scoped request through the app's authenticated client (Bearer or DPoP, with nonce renewal).
 edit(/\/client\/assets\/utils-yaDPh6e6\.js$/, src => src + '\n' + read('thinking-runtime.inc.js'));
+edit(/\/client\/assets\/runtime-CT-tx6M7\.js$/, src => once(src,
+  'function hf(e){let t=e.filter(e=>e.hasPendingApprovals).length,n=t===0?`input`:t===e.length?`approval`:`you`,r=e.filter(e=>e.lineage.sideChat===!0).length,i=r===e.length?`side chat`:r===0?`subagent`:`thread`;return e.length===1?`${i===`side chat`?`Side chat`:`Subagent`} needs ${n}`:`${e.length} ${i}s need ${n}`}',
+  'function hf(e){let t=e.filter(e=>e.hasPendingApprovals).length,n=t===0?`需要輸入`:t===e.length?`需要確認`:`需要你處理`,r=e.filter(e=>e.lineage.sideChat===!0).length,i=r===e.length?`側邊對話`:r===0?`子代理`:`對話`;return e.length===1?`${i}${n}`:`${e.length} 個${i}${n}`}'));
 edit(/\/client\/assets\/useTimelineFollow-BEiscSIK\.js$/, src => {
   // Separate names from the timeline module's imports avoid its local shadowing.
   src = ['import { zhTranslateEffect, zu as zhAtomsFactory, zw as zhOptionToNullable, mS as zhPending, qc as zhThinkingRegistryContext } from "./utils-yaDPh6e6.js";',

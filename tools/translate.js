@@ -1,5 +1,5 @@
 // Translate UI string literals in one JS source using the dictionary.
-const { scanFile } = require("./scan");
+const { scanFile, strValue, contextOf } = require("./scan");
 const fs = require("fs");
 const path = require("path");
 
@@ -64,19 +64,28 @@ function render(node, src, zh, edits) {
 function translateFile(file, dict, logicStrings, stats) {
   const edits = [];
   let src;
-  scanFile(file, ({ node, value, ctx, src: s }) => {
-    src = s;
-    const zh = dict.get(value);
-    if (zh === undefined) return;
-    if (ctx === "prop:children" && WORDMARK_CHILDREN.has(value)) return;
+  function canTranslate(value, ctx) {
+    if (!dict.has(value) || (ctx === "prop:children" && WORDMARK_CHILDREN.has(value))) return false;
     const dialog = ctx === "join" || /^call:[\w$]+\.confirm#0$/.test(ctx);
     // Page titles keyed by route, e.g. { "/settings/general": "General" }.
     const routeTitle = ctx.startsWith("prop:/settings/");
     // Labels can also serve as discriminants (e.g. label === "Commit").
     // Preserve those data values; patchLabels handles their final JSX display.
     const ui = UI_CTX.has(ctx) && !(ctx === "prop:label" && logicStrings.has(value));
-    const ok = ui || dialog || routeTitle || (SOFT_CTX.has(ctx) && !logicStrings.has(value));
-    if (!ok) return;
+    return ui || dialog || routeTitle || (SOFT_CTX.has(ctx) && !logicStrings.has(value));
+  }
+  scanFile(file, ({ node, value, ctx, ancestors, src: s }) => {
+    src = s;
+    if (!canTranslate(value, ctx)) return;
+    // An input object's title is request data, not a rendered title.
+    if (ctx === "prop:title" && ancestors.some(parent => parent.type === "Property" &&
+        !parent.computed && (parent.key.name ?? parent.key.value) === "input")) return;
+    // A fragment must not create mixed-language text inside an untranslated template.
+    for (let i = 0; i < ancestors.length - 1; i++) {
+      const parent = ancestors[i];
+      if (parent.type === "TemplateLiteral" && !canTranslate(strValue(parent), contextOf(ancestors.slice(0, i + 1), parent).ctx)) return;
+    }
+    const zh = dict.get(value);
     // Translations may drop placeholders (e.g. English plural suffixes) but never add unknown ones.
     const known = new Set(placeholders(value).split(","));
     if (placeholders(zh) && !placeholders(zh).split(",").every((p) => known.has(p))) {

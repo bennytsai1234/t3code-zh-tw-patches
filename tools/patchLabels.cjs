@@ -79,9 +79,10 @@ for (const [file, entry] of archive.files) {
     const labels = [
       ['"data-composer-control-label":!0,children:c', '"data-composer-control-label":!0,children:zhDisplayLabel(c)'],
       ['children:o.otherLabels.join(` · `)', 'children:o.otherLabels.map(zhDisplayLabel).join(` · `)'],
+      ['description:`它與 ${a===0?`other`:a} 個執行中的${a===1?`thread`:`threads`}共用。請停止這些工作以釋出它。`', 'description:`它與${a===0?`其他`:`${a} 個`}執行中的對話共用。請停止這些對話以釋出程序。`'],
     ];
     for (const [from, to] of labels) {
-      if (src.split(from).length !== 2) throw Error('找不到輸入區的思考程度顯示位置。');
+      if (src.split(from).length !== 2) throw Error('找不到對話頁的顯示位置。');
       const start = src.indexOf(from);
       edits.push({ start, end: start + from.length, text: to });
     }
