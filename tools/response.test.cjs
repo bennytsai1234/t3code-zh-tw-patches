@@ -48,7 +48,7 @@ function harness(request, parser = fixtureTree, indexedDB) {
   let original = false;
   const context = vm.createContext({
     Promise, Map, Set, Error, JSON, crypto: webcrypto, TextEncoder, indexedDB,
-    nf: { parse: parser }, zhTranslateRequest: request, zhThinkingRegistryContext: {},
+    ff: { parse: parser }, zhTranslateRequest: request, zhThinkingRegistryContext: {},
     Z: {
       useContext: () => null,
       useState: () => [original, update => { original = typeof update === 'function' ? update(original) : update; }],

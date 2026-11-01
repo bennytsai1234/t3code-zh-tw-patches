@@ -37,18 +37,18 @@ edit(/\/binCli-[^/]+\.mjs$/, src => {
   return once(src, ')), layerOtlpTracesProxyRoute, layerAssetRoute,', ')), layerZhThinkingTranslation, layerOtlpTracesProxyRoute, layerAssetRoute,');
 });
 // Environment-scoped request through the app's authenticated client (Bearer or DPoP, with nonce renewal).
-edit(/\/client\/assets\/utils-Z26bPbM5\.js$/, src => src + '\n' + read('thinking-runtime.inc.js'));
-edit(/\/client\/assets\/useTimelineFollow-krXlnyvk\.js$/, src => {
+edit(/\/client\/assets\/utils-yaDPh6e6\.js$/, src => src + '\n' + read('thinking-runtime.inc.js'));
+edit(/\/client\/assets\/useTimelineFollow-BEiscSIK\.js$/, src => {
   // Separate names from the timeline module's imports avoid its local shadowing.
-  src = ['import { zhTranslateEffect, Pu as zhAtomsFactory, fw as zhOptionToNullable, Hx as zhPending, Gc as zhThinkingRegistryContext } from "./utils-Z26bPbM5.js";',
-    'import { t as zhThinkingRuntime } from "./runtime-DV8b3pOc.js";',
+  src = ['import { zhTranslateEffect, zu as zhAtomsFactory, zw as zhOptionToNullable, mS as zhPending, qc as zhThinkingRegistryContext } from "./utils-yaDPh6e6.js";',
+    'import { t as zhThinkingRuntime } from "./runtime-CT-tx6M7.js";',
     'const zhEnvironmentAtoms = zhAtomsFactory(zhThinkingRuntime);', ''].join('\n') + src;
-  src = once(src, '(0,Q.jsx)(br,{inline:!0,text:n.entry.detail??a,cwd:r.markdownCwd,parseRawHtml:!1,extraRemarkPlugins:[[xg,n.active?`Thinking`:`Thought`]]})', '(0,Q.jsx)(ZhThinking,{text:n.entry.detail??a,active:n.active,environmentId:r.activeThreadEnvironmentId,threadId:r.threadRef?.threadId,render:text=>(0,Q.jsx)(br,{inline:!0,text,cwd:r.markdownCwd,parseRawHtml:!1,extraRemarkPlugins:[[xg,n.active?`Thinking`:`Thought`]]})})');
-  src = once(src, '(0,Q.jsx)(br,{inline:!0,text:n.detail??P,cwd:o.markdownCwd,parseRawHtml:!1,extraRemarkPlugins:[[xg,n.toolLifecycleStatus===`inProgress`?`Thinking`:`Thought`]]})', '(0,Q.jsx)(ZhThinking,{text:n.detail??P,active:n.toolLifecycleStatus===`inProgress`,environmentId:o.activeThreadEnvironmentId,threadId:o.threadRef?.threadId,render:text=>(0,Q.jsx)(br,{inline:!0,text,cwd:o.markdownCwd,parseRawHtml:!1,extraRemarkPlugins:[[xg,n.toolLifecycleStatus===`inProgress`?`Thinking`:`Thought`]]})})');
-  src = once(src, '(0,Q.jsx)(br,{text:a.text,cwd:e.cwd,threadRef:{environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId},lineBreaks:!0})', '(0,Q.jsx)(ZhThinking,{text:a.text,environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId,render:text=>(0,Q.jsx)(br,{text,cwd:e.cwd,threadRef:{environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId},lineBreaks:!0})})');
+  src = once(src, '(0,$.jsx)(Sr,{inline:!0,text:n.entry.detail??a,cwd:r.markdownCwd,parseRawHtml:!1,extraRemarkPlugins:n.active?Pg:Ng})', '(0,$.jsx)(ZhThinking,{text:n.entry.detail??a,active:n.active,environmentId:r.activeThreadEnvironmentId,threadId:r.threadRef?.threadId,render:text=>(0,$.jsx)(Sr,{inline:!0,text,cwd:r.markdownCwd,parseRawHtml:!1,extraRemarkPlugins:n.active?Pg:Ng})})');
+  src = once(src, '(0,$.jsx)(Sr,{inline:!0,text:n.detail??P,cwd:a.markdownCwd,parseRawHtml:!1,extraRemarkPlugins:n.toolLifecycleStatus===`inProgress`?Pg:Ng})', '(0,$.jsx)(ZhThinking,{text:n.detail??P,active:n.toolLifecycleStatus===`inProgress`,environmentId:a.activeThreadEnvironmentId,threadId:a.threadRef?.threadId,render:text=>(0,$.jsx)(Sr,{inline:!0,text,cwd:a.markdownCwd,parseRawHtml:!1,extraRemarkPlugins:n.toolLifecycleStatus===`inProgress`?Pg:Ng})})');
+  src = once(src, '(0,$.jsx)(Sr,{text:a.text,cwd:e.cwd,threadRef:{environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId},lineBreaks:!0})', '(0,$.jsx)(ZhThinking,{text:a.text,environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId,render:text=>(0,$.jsx)(Sr,{text,cwd:e.cwd,threadRef:{environmentId:e.environmentId,threadId:e.projectedItem.sourceThreadId},lineBreaks:!0})})');
   src = patchExpandedReasoningRenderer(src);
-  src = once(src, '(0,Q.jsx)(br,{text:i,cwd:d,threadRef:f,isStreaming:p,lineBreaks:m,skills:r.skills,headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onRunShellCommand:r.onRunShellCommand,onImageExpand:r.onImageExpand})', '(0,Q.jsx)(ZhThinking,{kind:"response",text:i,active:p,environmentId:f?.environmentId,threadId:f?.threadId,render:text=>(0,Q.jsx)(br,{text,cwd:d,threadRef:f,isStreaming:p,lineBreaks:m,skills:r.skills,headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onRunShellCommand:r.onRunShellCommand,onImageExpand:r.onImageExpand})})');
-  return src + '\n' + read('thinking-request.inc.js') + '\n' + read('response-markdown.inc.js') + '\n' + read('thinking-client.inc.js').replaceAll('(0,Z.use', '(0,X.use').replaceAll('(0,$.jsx', '(0,Q.jsx');
+  src = once(src, '(0,$.jsx)(Sr,{text:i,cwd:d,threadRef:f,isStreaming:p,lineBreaks:m,skills:r.skills,headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onRunShellCommand:r.onRunShellCommand,onImageExpand:r.onImageExpand})', '(0,$.jsx)(ZhThinking,{kind:"response",text:i,active:p,environmentId:f?.environmentId,threadId:f?.threadId,render:text=>(0,$.jsx)(Sr,{text,cwd:d,threadRef:f,isStreaming:p,lineBreaks:m,skills:r.skills,headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onRunShellCommand:r.onRunShellCommand,onImageExpand:r.onImageExpand})})');
+  return src + '\n' + read('thinking-request.inc.js') + '\n' + read('response-markdown.inc.js') + '\n' + read('thinking-client.inc.js');
 });
 writeArchive(input, output, replacements);
 console.log('思考與回覆翻譯：已修改後端、環境授權傳輸與顯示接點，通過 V8 語法檢查。');
