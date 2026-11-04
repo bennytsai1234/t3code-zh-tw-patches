@@ -10,7 +10,7 @@ const labels = JSON.parse(fs.readFileSync(path.join(__dirname, '../translations/
 const archive = readArchive(input), replacements = new Map();
 let total = 0;
 // Version-pinned modules; a missing one means the chunk names changed.
-const pinned = new Set(['picker', 'utils', 'main', 'chat']);
+const pinned = new Set(['picker', 'utils', 'main']);
 for (const [file, entry] of archive.files) {
   if (!/\/client\/assets\/.*\.js$/.test(file) || /\/(?:dist-|chunk-|runtime-|index-|katex|cytoscape|mermaid)/.test(file)) continue;
   let src = archive.read(entry).toString('utf8');
@@ -46,8 +46,8 @@ for (const [file, entry] of archive.files) {
     }
   });
   // These two getters are the picker library's item-to-label interface, not option values.
-  if (/\/ProviderModelPicker-MDJs7Vw2\.js$/.test(file)) {
-    const getters = [...src.matchAll(/function (?:jt|Mt)\(e\)\{return e\.(?:label|fullLabel)\}/g)];
+  if (/\/ProviderModelPicker-mP93BfEm\.js$/.test(file)) {
+    const getters = [...src.matchAll(/function (?:Pt|Ft)\(e\)\{return e\.(?:label|fullLabel)\}/g)];
     if (getters.length !== 2) throw Error('找不到模型選擇器的兩個標籤函式。');
     for (const match of getters) {
       const value = match[0].includes('e.fullLabel') ? 'e.fullLabel' : 'e.label';
@@ -56,7 +56,7 @@ for (const [file, entry] of archive.files) {
     }
     pinned.delete('picker');
   }
-  if (/\/utils-yaDPh6e6\.js$/.test(file)) {
+  if (/\/utils-BL51zcsk\.js$/.test(file)) {
     const from = 'let{label:h}=m,g=n.provider===`codex`';
     if (src.split(from).length !== 2) throw Error('找不到模型選項的最終顯示標籤。');
     const start = src.indexOf(from);
@@ -68,25 +68,12 @@ for (const [file, entry] of archive.files) {
     edits.push({ start: triggerStart, end: triggerStart + trigger.length, text: 'return zhDisplayLabel(e.options.find(e=>e.id===r)?.label)??' });
     pinned.delete('utils');
   }
-  if (/\/main-D6TScBsg\.js$/.test(file)) {
-    const from = 'function Lw(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
+  if (/\/main-sk5g_Jie\.js$/.test(file)) {
+    const from = 'function rT(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
     if (src.split(from).length !== 2) throw Error('找不到更新項目數量的顯示函式。');
     const start = src.indexOf(from);
-    edits.push({ start, end: start + from.length, text: 'function Lw(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
+    edits.push({ start, end: start + from.length, text: 'function rT(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
     pinned.delete('main');
-  }
-  if (/\/_chat-[^/]+\.js$/.test(file)) {
-    const labels = [
-      ['"data-composer-control-label":!0,children:c', '"data-composer-control-label":!0,children:zhDisplayLabel(c)'],
-      ['children:o.otherLabels.join(` · `)', 'children:o.otherLabels.map(zhDisplayLabel).join(` · `)'],
-      ['description:`它與 ${a===0?`other`:a} 個執行中的${a===1?`thread`:`threads`}共用。請停止這些工作以釋出它。`', 'description:`它與${a===0?`其他`:`${a} 個`}執行中的對話共用。請停止這些對話以釋出程序。`'],
-    ];
-    for (const [from, to] of labels) {
-      if (src.split(from).length !== 2) throw Error('找不到對話頁的顯示位置。');
-      const start = src.indexOf(from);
-      edits.push({ start, end: start + from.length, text: to });
-    }
-    pinned.delete('chat');
   }
   if (!edits.length) continue;
   edits.sort((a,b) => b.start-a.start);

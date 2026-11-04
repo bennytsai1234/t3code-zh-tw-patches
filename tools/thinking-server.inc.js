@@ -1,5 +1,5 @@
 // Inserted in the pinned Beta server bundle; uses its existing Effect services.
-const layerZhThinkingTranslation = add$1("POST", "/api/zh-tw/thinking", gen$1(function* () {
+const layerZhThinkingTranslation = add$2("POST", "/api/zh-tw/thinking", gen(function* () {
   yield* authenticateRawRouteWithScope(AuthOrchestrationOperateScope);
   const request = yield* HttpServerRequest;
   const body = yield* request.json;

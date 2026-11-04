@@ -55,7 +55,7 @@ function zhPrepareResponse(text) {
     }
     if (Array.isArray(node.children)) for (const child of node.children) walk(child);
   }
-  const tree = ff.parse(text);
+  const tree = wf.parse(text);
   walk(tree);
   function structure(node) {
     if (node.type === "text") return null;
@@ -119,7 +119,7 @@ function zhPrepareResponse(text) {
         throw Error("譯文未保留回覆格式，已保留原文；可手動重試。");
       }
       const restored = translation.replace(pattern, marker => originals[Number(marker.slice(prefix.length, -1))]);
-      if (JSON.stringify(structure(ff.parse(restored))) !== originalStructure) {
+      if (JSON.stringify(structure(wf.parse(restored))) !== originalStructure) {
         throw Error("譯文未保留回覆格式，已保留原文；可手動重試。");
       }
       return restored;

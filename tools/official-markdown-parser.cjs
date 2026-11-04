@@ -6,7 +6,7 @@ const acorn = require('acorn');
 const { readArchive } = require('./asarRewrite');
 
 module.exports = function officialMarkdownParser() {
-  const file = path.join(__dirname, '../builds/0.1.6/orig/server.asar');
+  const file = path.join(__dirname, '../builds/0.1.7/orig/server.asar');
   if (!fs.existsSync(file)) return null;
   const archive = readArchive(file);
   function read(pattern) {
@@ -40,6 +40,6 @@ module.exports = function officialMarkdownParser() {
     }
     throw Error('Parser dependency limit');
   }
-  evaluate('var parser=La().use(Jc).use(Kv).freeze()');
+  evaluate('var parser=Ba().use(Qc).use(Xv).freeze()');
   return text => evaluate('parser.parse(' + JSON.stringify(text) + ')');
 };

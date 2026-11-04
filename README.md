@@ -1,6 +1,6 @@
 # T3 Code 繁體中文與自動翻譯補丁
 
-適用 Windows **T3 Code 0.1.6**，官方 commit **2359643cffa6**。修改官方安裝的兩份程式包：介面翻成繁體中文、修正外觀頁字型選單卡死，並自動翻譯思考內容與 AI 回覆。不升級 T3 Code，不變更對話、供應商、快捷鍵與外觀設定。其他版本會在建置時停住，要先移植補丁（步驟見 [AGENTS.md](AGENTS.md)）。
+適用 Windows **T3 Code 0.1.7**，官方 commit **322f6544dfad**。修改官方安裝的兩份程式包：介面翻成繁體中文、修正外觀頁字型選單卡死，並自動翻譯思考內容與 AI 回覆。不升級 T3 Code，不變更對話、供應商、快捷鍵與外觀設定。其他版本會在建置時停住，要先移植補丁（步驟見 [AGENTS.md](AGENTS.md)）。
 
 ## 安裝
 
@@ -10,15 +10,15 @@
 npm ci --prefix tools
 # 第一次套用前，從尚未修改的官方安裝保存原始程式包；以後一律從它重建。
 $resources = "$env:LOCALAPPDATA\Programs\t3code\resources"
-New-Item -ItemType Directory -Path builds\0.1.6\orig -Force
-Copy-Item "$resources\app.asar", "$resources\server.asar" builds\0.1.6\orig
-node tools/build.cjs builds/0.1.6/orig builds/0.1.6/zh-release
+New-Item -ItemType Directory -Path builds\0.1.7\orig -Force
+Copy-Item "$resources\app.asar", "$resources\server.asar" builds\0.1.7\orig
+node tools/build.cjs builds/0.1.7/orig builds/0.1.7/zh-release
 ```
 
 建置會核對兩份官方程式包的 SHA256，拿已修改過的程式包當輸入會被擋下。儲存工作、完全關閉 T3 Code 後執行：
 
 ```powershell
-.\tools\install.ps1 -Src .\builds\0.1.6\zh-release
+.\tools\install.ps1 -Src .\builds\0.1.7\zh-release
 # 安裝位置不同時，加上 -InstallDir 'D:\Apps\t3code'
 ```
 
@@ -46,7 +46,7 @@ setx T3CODE_DISABLE_AUTO_UPDATE true
 
 ## 目前版本未實測
 
-0.1.6 已完成建置、自動測試、隔離伺服器介面與未登入路由檢查，並以一筆實際對話確認思考與回覆翻譯、原文切換、Markdown 保護及重新整理後的快取。DPoP 授權更新需要遠端中繼連線，尚未實測。
+0.1.7 已完成建置、自動測試、隔離伺服器介面與未登入路由檢查，並以一筆實際對話確認思考與回覆翻譯、回覆原文切換、路徑與連結保護及重新整理後顯示譯文。DPoP 授權更新需要遠端中繼連線，尚未實測；重新整理時的翻譯請求數尚未檢查。
 
 ## 倉庫內容
 
