@@ -151,11 +151,11 @@ test('只有程式碼的回覆不呼叫翻譯模型', async () => {
   assert.equal(calls, 0);
 });
 
-test('正文整篇含漢字時不送請求，純英文仍翻譯', async () => {
+test('正文的可閱讀文字含漢字時不送請求，純英文仍翻譯', async () => {
   const parser = value => ({ type: 'root', children: [{ type: 'text', position: { start: { offset: 0 }, end: { offset: value.length } } }] });
   const calls = [];
   const h = harness(async (...args) => { calls.push(args); return { translation: args[3] }; }, parser);
-  for (const text of ['已完成 API 驗證。', '  1. 先確認 Forcepoint，再讀 README。', '確認完成。\n\nRead the file.', '123 😀', '日本語の説明 API', 'API 已完成驗證。', 'Read the API，接著處理中文。', 'Read the file. /資料/report.txt']) {
+  for (const text of ['已完成 API 驗證。', '  1. 先確認 Forcepoint，再讀 README。', '確認完成。\n\nRead the file.', '123 😀', '日本語の説明 API', 'API 已完成驗證。', 'Read the API，接著處理中文。']) {
     assert.equal(h.render(text, true), text);
     assert.equal(h.render(text), text);
   }
@@ -166,7 +166,7 @@ test('正文整篇含漢字時不送請求，純英文仍翻譯', async () => {
   assert.equal(calls.length, 1);
 });
 
-test('英文開頭判定排除受保護的路徑、網址與程式碼，整篇有漢字則不翻譯', () => {
+test('判定排除受保護的路徑、網址與程式碼', () => {
   const textNode = (start, end) => ({ type: 'text', position: { start: { offset: start }, end: { offset: end } } });
   const plain = value => ({ type: 'root', children: [textNode(0, value.length)] });
   const h = harness(async () => {}, plain);
@@ -174,19 +174,47 @@ test('英文開頭判定排除受保護的路徑、網址與程式碼，整篇�
     assert.equal(h.prepare(prefix + '已完成 API 驗證。').needsTranslation, false);
     assert.equal(h.prepare(prefix + 'Read the report.').needsTranslation, true);
   }
-  assert.equal(h.prepare('/資料/報告.txt Read the report.').needsTranslation, false);
+  assert.equal(h.prepare('/資料/報告.txt Read the report.').needsTranslation, true);
   const codeWithChinese = 'Read the report.\n\n```js\n// 註解\n```';
   const codeStart = codeWithChinese.indexOf('```');
   const protectedCode = harness(async () => {}, () => ({ type: 'root', children: [
     textNode(0, codeStart), { type: 'code', value: '// 註解' }
   ] }));
-  assert.equal(protectedCode.prepare(codeWithChinese).needsTranslation, false);
+  assert.equal(protectedCode.prepare(codeWithChinese).needsTranslation, true);
   const source = '```js\nconst English = true;\n```\n\n已完成 API 驗證。';
   const from = source.indexOf('已完成');
   const codeFirst = harness(async () => {}, value => ({ type: 'root', children: [
     { type: 'code', value: 'const English = true;' }, textNode(from, value.length)
   ] }));
   assert.equal(codeFirst.prepare(source).needsTranslation, false);
+});
+
+test('官方解析器：思考與回覆忽略程式碼、路徑及網址中的漢字，連結文字仍參與判斷', { skip: !officialParser, timeout: 10000 }, async () => {
+  const calls = [];
+  const h = harness(async (...args) => { calls.push(args); return { translation: args[3] }; }, officialParser);
+  const samples = [
+    'Read the file at /資料/報告.txt.',
+    'Read https://example.com/資料 for details.',
+    'Read the file `資料`.',
+    'Read the file.\n\n```js\n// 中文註解\n```',
+    'Read the [manual](https://example.com/資料).'
+  ];
+  for (const kind of ['thinking', 'response']) {
+    for (const sample of samples) {
+      let prepared;
+      try { prepared = h.prepare(sample); } catch (error) { throw Error(`解析失敗：${sample}`, { cause: error }); }
+      assert.equal(prepared.needsTranslation, true, sample);
+      h.render(sample, false, kind);
+    }
+  }
+  await h.settle();
+  assert.equal(calls.length, samples.length * 2);
+  const chineseLabel = 'Read the [說明](https://example.com/docs).';
+  for (const kind of ['thinking', 'response']) assert.equal(h.render(chineseLabel, false, kind), chineseLabel);
+  await h.settle();
+  assert.equal(calls.length, samples.length * 2);
+  const bareUrl = h.prepare('Read https://example.com/資料 for details.');
+  assert.equal(bareUrl.restore(bareUrl.input.replace('Read ', '請讀取 ').replace(' for details.', ' 查看詳情。')), '請讀取 https://example.com/資料 查看詳情。');
 });
 
 test('真實模型依中文語序調換同一段內的程式碼時，仍還原正確內容', () => {

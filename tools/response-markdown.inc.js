@@ -53,6 +53,20 @@ function zhPrepareResponse(text) {
       const raw = text.slice(start, end);
       if (raw.startsWith("<") || /^https?:\/\//i.test(raw)) return;
     }
+    // The official autolink extension may synthesize a paragraph's children
+    // without positions. Recover only a verbatim sequence of text and URLs.
+    if (node.type === "paragraph" && Number.isInteger(start) && Number.isInteger(end) && Array.isArray(node.children)) {
+      const parts = node.children.map(child => {
+        if (child.position) return null;
+        if (child.type === "text" && typeof child.value === "string") return child.value;
+        if (child.type === "link" && /^https?:\/\//i.test(child.url ?? "") && child.children?.length === 1 && child.children[0].type === "text" && child.children[0].value === child.url) return child.url;
+        return null;
+      });
+      if (parts.every(part => part !== null) && parts.join("") === text.slice(start, end)) {
+        addProse(start, end);
+        return;
+      }
+    }
     if (Array.isArray(node.children)) for (const child of node.children) walk(child);
   }
   const tree = wf.parse(text);
@@ -110,7 +124,7 @@ function zhPrepareResponse(text) {
   protectRange(cursor, text.length);
   return {
     input,
-    needsTranslation: !/\p{Script=Han}/u.test(text) && zhStartsWithEnglish(prose),
+    needsTranslation: !/\p{Script=Han}/u.test(prose) && zhStartsWithEnglish(prose),
     restore(translation) {
       const pattern = new RegExp(`${prefix}\\d+⟧`, "g");
       const found = translation.match(pattern) ?? [];

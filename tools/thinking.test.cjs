@@ -121,7 +121,7 @@ test('不同對話不共用翻譯；純中文不呼叫模型', async () => {
 test('思考摘要整段含漢字時不送請求，純英文仍翻譯', async () => {
   const calls = [];
   const h = harness(async (...args) => { calls.push(args); return { translation: '先檢查 API。' }; });
-  for (const text of ['已完成 API 驗證。', '  1. 先確認 Forcepoint，再讀 README。', '「驗證完成」 OK', '123 😀', '確認完成。\n\nRead the file.', 'API 已完成驗證。', 'Inspect the API，接著處理中文。', 'Read the file. `註解`']) {
+  for (const text of ['已完成 API 驗證。', '  1. 先確認 Forcepoint，再讀 README。', '「驗證完成」 OK', '123 😀', '確認完成。\n\nRead the file.', 'API 已完成驗證。', 'Inspect the API，接著處理中文。']) {
     assert.equal(h.render(text, true), text);
     assert.equal(h.render(text), text);
   }
