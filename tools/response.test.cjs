@@ -151,29 +151,36 @@ test('只有程式碼的回覆不呼叫翻譯模型', async () => {
   assert.equal(calls, 0);
 });
 
-test('正文依第一個自然語言字元決定是否翻譯，不受後面的英文影響', async () => {
+test('正文整篇含漢字時不送請求，純英文仍翻譯', async () => {
   const parser = value => ({ type: 'root', children: [{ type: 'text', position: { start: { offset: 0 }, end: { offset: value.length } } }] });
   const calls = [];
   const h = harness(async (...args) => { calls.push(args); return { translation: args[3] }; }, parser);
-  for (const text of ['已完成 API 驗證。', '  1. 先確認 Forcepoint，再讀 README。', '確認完成。\n\nRead the file.', '123 😀', '日本語の説明 API']) {
+  for (const text of ['已完成 API 驗證。', '  1. 先確認 Forcepoint，再讀 README。', '確認完成。\n\nRead the file.', '123 😀', '日本語の説明 API', 'API 已完成驗證。', 'Read the API，接著處理中文。', 'Read the file. /資料/report.txt']) {
     assert.equal(h.render(text, true), text);
     assert.equal(h.render(text), text);
   }
   await h.settle();
   assert.equal(calls.length, 0);
-  h.render('  1. Read the API，接著處理中文。');
+  h.render('  1. Read the API.');
   await h.settle();
   assert.equal(calls.length, 1);
 });
 
-test('判定開頭時排除受保護的路徑、網址與程式碼', () => {
+test('英文開頭判定排除受保護的路徑、網址與程式碼，整篇有漢字則不翻譯', () => {
   const textNode = (start, end) => ({ type: 'text', position: { start: { offset: start }, end: { offset: end } } });
   const plain = value => ({ type: 'root', children: [textNode(0, value.length)] });
   const h = harness(async () => {}, plain);
-  for (const prefix of ['https://example.com ', 'C:\\Project\\app.js ', '/資料/報告.txt ']) {
+  for (const prefix of ['https://example.com ', 'C:\\Project\\app.js ']) {
     assert.equal(h.prepare(prefix + '已完成 API 驗證。').needsTranslation, false);
     assert.equal(h.prepare(prefix + 'Read the report.').needsTranslation, true);
   }
+  assert.equal(h.prepare('/資料/報告.txt Read the report.').needsTranslation, false);
+  const codeWithChinese = 'Read the report.\n\n```js\n// 註解\n```';
+  const codeStart = codeWithChinese.indexOf('```');
+  const protectedCode = harness(async () => {}, () => ({ type: 'root', children: [
+    textNode(0, codeStart), { type: 'code', value: '// 註解' }
+  ] }));
+  assert.equal(protectedCode.prepare(codeWithChinese).needsTranslation, false);
   const source = '```js\nconst English = true;\n```\n\n已完成 API 驗證。';
   const from = source.indexOf('已完成');
   const codeFirst = harness(async () => {}, value => ({ type: 'root', children: [

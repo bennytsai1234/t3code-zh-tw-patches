@@ -110,7 +110,7 @@ function zhPrepareResponse(text) {
   protectRange(cursor, text.length);
   return {
     input,
-    needsTranslation: zhStartsWithEnglish(prose),
+    needsTranslation: !/\p{Script=Han}/u.test(text) && zhStartsWithEnglish(prose),
     restore(translation) {
       const pattern = new RegExp(`${prefix}\\d+⟧`, "g");
       const found = translation.match(pattern) ?? [];

@@ -118,19 +118,19 @@ test('不同對話不共用翻譯；純中文不呼叫模型', async () => {
   assert.equal(calls, 2);
 });
 
-test('思考摘要依開頭判定；中文夾英文不送請求，英文開頭仍翻譯', async () => {
+test('思考摘要整段含漢字時不送請求，純英文仍翻譯', async () => {
   const calls = [];
   const h = harness(async (...args) => { calls.push(args); return { translation: '先檢查 API。' }; });
-  for (const text of ['已完成 API 驗證。', '  1. 先確認 Forcepoint，再讀 README。', '「驗證完成」 OK', '123 😀', '確認完成。\n\nRead the file.']) {
+  for (const text of ['已完成 API 驗證。', '  1. 先確認 Forcepoint，再讀 README。', '「驗證完成」 OK', '123 😀', '確認完成。\n\nRead the file.', 'API 已完成驗證。', 'Inspect the API，接著處理中文。', 'Read the file. `註解`']) {
     assert.equal(h.render(text, true), text);
     assert.equal(h.render(text), text);
   }
   await h.settle();
   assert.equal(calls.length, 0);
-  h.render('  1. Inspect the API，接著處理中文。');
+  h.render('  1. Inspect the API.');
   await h.settle();
   assert.equal(calls.length, 1);
-  assert.equal(calls[0][3], '  1. Inspect the API，接著處理中文。');
+  assert.equal(calls[0][3], '  1. Inspect the API.');
 });
 test('供應商用量錯誤保留原文，不自動重試；可手動重試', async () => {
   let calls = 0;
