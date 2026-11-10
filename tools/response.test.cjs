@@ -6,8 +6,22 @@ const vm = require('node:vm');
 const { webcrypto } = require('node:crypto');
 const { TextEncoder } = require('node:util');
 const officialParser = require('./official-markdown-parser.cjs')();
+const { readArchive } = require('./asarRewrite');
+const currentArchive = path.join(__dirname, '../builds/0.1.8/orig/server.asar');
 
-test('官方解析器：中文標點後的粗體及斜體保留必要邊界空白', { skip: !officialParser, timeout: 10000 }, () => {
+test('回覆翻譯使用目前版本對話模組的 Markdown 解析器', { skip: !fs.existsSync(currentArchive), timeout: 10000 }, () => {
+  const archive = readArchive(currentArchive);
+  const matches = archive.files.filter(([name]) => /\/client\/assets\/useTimelineFollow-[^/]+\.js$/.test(name));
+  assert.equal(matches.length, 1);
+  const timeline = archive.read(matches[0][1]).toString('utf8');
+  const injected = fs.readFileSync(path.join(__dirname, 'response-markdown.inc.js'), 'utf8');
+  const official = /assistantText:[^;]*?\w+\((\w+)\.parse\(e\.assistantText\.slice/.exec(timeline)?.[1];
+  const used = /const tree = (\w+)\.parse\(text\)/.exec(injected)?.[1];
+  assert.ok(official && used, '找不到 Markdown 解析接點');
+  assert.equal(used, official);
+});
+
+test('0.1.7 官方解析器：中文標點後的粗體及斜體保留必要邊界空白', { skip: !officialParser, timeout: 10000 }, () => {
   const h = harness(async () => {}, officialParser);
   for (const delimiter of ['**', '*', '_', '__', '~~']) {
     const original = `Read ${delimiter}Done.${delimiter} Next.`;
@@ -17,7 +31,7 @@ test('官方解析器：中文標點後的粗體及斜體保留必要邊界空�
   }
 });
 
-test('官方解析器：遺失粗體標記仍拒絕譯文', { skip: !officialParser, timeout: 10000 }, () => {
+test('0.1.7 官方解析器：遺失粗體標記仍拒絕譯文', { skip: !officialParser, timeout: 10000 }, () => {
   const prepared = harness(async () => {}, officialParser).prepare('**Done.** Next.');
   const translation = prepared.input.replace('Done.', '完成。').replace('Next.', '接著處理。');
   assert.throws(() => prepared.restore(translation.replace(/⟦T3ZH0X\d+⟧/, '')), /未保留回覆格式/);
@@ -48,7 +62,7 @@ function harness(request, parser = fixtureTree, indexedDB) {
   let original = false;
   const context = vm.createContext({
     Promise, Map, Set, Error, JSON, crypto: webcrypto, TextEncoder, indexedDB,
-    wf: { parse: parser }, zhTranslateRequest: request, zhThinkingRegistryContext: {},
+    Pf: { parse: parser }, zhTranslateRequest: request, zhThinkingRegistryContext: {},
     Z: {
       useContext: () => null,
       useState: () => [original, update => { original = typeof update === 'function' ? update(original) : update; }],
@@ -189,7 +203,7 @@ test('判定排除受保護的路徑、網址與程式碼', () => {
   assert.equal(codeFirst.prepare(source).needsTranslation, false);
 });
 
-test('官方解析器：思考與回覆忽略程式碼、路徑及網址中的漢字，連結文字仍參與判斷', { skip: !officialParser, timeout: 10000 }, async () => {
+test('0.1.7 官方解析器：思考與回覆忽略程式碼、路徑及網址中的漢字，連結文字仍參與判斷', { skip: !officialParser, timeout: 10000 }, async () => {
   const calls = [];
   const h = harness(async (...args) => { calls.push(args); return { translation: args[3] }; }, officialParser);
   const samples = [

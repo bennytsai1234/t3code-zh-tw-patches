@@ -11,12 +11,8 @@ const layerZhThinkingTranslation = add$2("POST", "/api/zh-tw/thinking", gen(func
   const project = yield* (yield* ProjectStoreV2).get(projection.thread.projectId);
   if (isNone(project)) return jsonUnsafe({ error: "找不到所屬專案。" }, { status: 404 });
   const settings = resolveProjectSettings(yield* (yield* ServerSettingsService).getSettings, projection.thread.projectId).settings;
-  const registry = yield* ProviderInstanceRegistry;
-  const instance = yield* registry.getInstance(settings.textGenerationModelSelection.instanceId);
-  if (!instance?.textGeneration?.translateThinking) {
-    return jsonUnsafe({ error: "目前文字生成供應商不支援翻譯。" }, { status: 422 });
-  }
-  const result = yield* instance.textGeneration.translateThinking({
+  const textGeneration = yield* TextGeneration;
+  const result = yield* textGeneration.translateThinking({
     cwd: projection.thread.worktreePath ?? project.value.workspaceRoot,
     modelSelection: settings.textGenerationModelSelection,
     text: body.text
