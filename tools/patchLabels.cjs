@@ -39,14 +39,14 @@ for (const [file, entry] of archive.files) {
     const callee = src.slice(call.callee.start, call.callee.end);
     if (!/\.jsxs?\)?$/.test(callee)) return;
     const value = node.value;
-    if ((key === 'children' && /\/SettingsPanels-BNss_vkZ\.js$/.test(file) && ['Identifier', 'MemberExpression'].includes(value.type)) ||
+    if ((key === 'children' && /\/SettingsPanels-De_u0dA8\.js$/.test(file) && ['Identifier', 'MemberExpression'].includes(value.type)) ||
         (key !== 'children' && ['Identifier','MemberExpression'].includes(value.type)) ||
         (value.type === 'MemberExpression' && ['label', 'displayLabel', 'optionLabel', 'effortLabel', 'title', 'description'].includes(value.property.name))) {
       edits.push({ start: value.start, end: value.end, text: `zhDisplayLabel(${src.slice(value.start, value.end)})` });
     }
   });
   // These two getters are the picker library's item-to-label interface, not option values.
-  if (/\/ProviderModelPicker-BdCFdeZP\.js$/.test(file)) {
+  if (/\/ProviderModelPicker-BXIbMEnM\.js$/.test(file)) {
     const getters = [...src.matchAll(/function (?:Ot|kt)\(e\)\{return e\.(?:label|fullLabel)\}/g)];
     if (getters.length !== 2) throw Error('找不到模型選擇器的兩個標籤函式。');
     for (const match of getters) {
@@ -56,7 +56,7 @@ for (const [file, entry] of archive.files) {
     }
     pinned.delete('picker');
   }
-  if (/\/utils-CE33Pid-\.js$/.test(file)) {
+  if (/\/utils-fcYT6KYI\.js$/.test(file)) {
     const from = 'let{label:h}=m,g=n.provider===`codex`';
     if (src.split(from).length !== 2) throw Error('找不到模型選項的最終顯示標籤。');
     const start = src.indexOf(from);
@@ -68,11 +68,11 @@ for (const [file, entry] of archive.files) {
     edits.push({ start: triggerStart, end: triggerStart + trigger.length, text: 'return zhDisplayLabel(e.options.find(e=>e.id===r)?.label)??' });
     pinned.delete('utils');
   }
-  if (/\/main-DSvHOVy-\.js$/.test(file)) {
-    const from = 'function uD(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
+  if (/\/main-BN8wt5wy\.js$/.test(file)) {
+    const from = 'function LE(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
     if (src.split(from).length !== 2) throw Error('找不到更新項目數量的顯示函式。');
     const start = src.indexOf(from);
-    edits.push({ start, end: start + from.length, text: 'function uD(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
+    edits.push({ start, end: start + from.length, text: 'function LE(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
     pinned.delete('main');
   }
   if (!edits.length) continue;

@@ -6,14 +6,46 @@ const path = require('path');
 const { webcrypto } = require('node:crypto');
 const { TextEncoder } = require('node:util');
 const { patchExpandedReasoningRenderer } = require('./patchThinkingRender.cjs');
+const { readArchive } = require('./asarRewrite');
+const acorn = require('acorn');
+const walk = require('acorn-walk');
+const patchedServer = path.join(__dirname, '../builds/0.1.9/zh-release/server.asar');
 
-const expandedEntryRenderer = 'e=e=>(0,$.jsx)(Mr,{className:`text-foreground`,text:e.detail??``,cwd:r.markdownCwd,threadRef:r.threadRef??void 0,skills:r.skills,isStreaming:s(e),headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onImageExpand:r.onImageExpand,lineBreaks:!0},e.id),';
+const expandedEntryRenderer = 'e=e=>(0,$.jsx)(Ir,{className:`text-foreground`,text:e.detail??``,cwd:r.markdownCwd,threadRef:r.threadRef??void 0,skills:r.skills,isStreaming:s(e),headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onImageExpand:r.onImageExpand,lineBreaks:!0},e.id),';
+
+test('翻譯服務將所屬專案交給文字產生服務', { skip: !fs.existsSync(patchedServer), timeout: 10000 }, () => {
+  const archive = readArchive(patchedServer);
+  const entries = archive.files.filter(([name]) => /\/runtimeLayer-BR0FRrjb\.mjs$/.test(name));
+  assert.equal(entries.length, 1);
+  const source = archive.read(entries[0][1]).toString('utf8');
+  const ast = acorn.parse(source, { ecmaVersion: 'latest', sourceType: 'module' });
+  let method;
+  walk.simple(ast, { CallExpression(node) {
+    if (node.callee.type !== 'MemberExpression' || node.callee.object.name !== 'TextGeneration' || node.callee.property.name !== 'of') return;
+    method = node.arguments[0].properties.find(p => p.key?.name === 'translateThinking')?.value;
+  } });
+  assert.ok(method, '找不到文字產生服務的翻譯方法');
+  const selection = { instanceId: 'codex', model: 'example' };
+  const replacement = { instanceId: 'fallback', model: 'example' };
+  const input = { modelSelection: selection, projectId: 'project-1', text: 'Hello' };
+  const generate = (operation, model, projectId, invoke) => {
+    assert.equal(operation, 'translateThinking');
+    assert.equal(model, selection);
+    assert.equal(projectId, 'project-1');
+    return invoke({ translateThinking: value => value }, replacement);
+  };
+  const translate = vm.runInNewContext('(' + source.slice(method.start, method.end) + ')', { generate });
+  const result = translate(input);
+  assert.equal(result.projectId, 'project-1');
+  assert.equal(result.modelSelection, replacement);
+  assert.equal(result.text, 'Hello');
+});
 
 function harness(request, indexedDB) {
   const effects = [];
   const context = vm.createContext({
     Promise, Map, Set, Error, JSON, crypto: webcrypto, TextEncoder, indexedDB,
-    Pf: { parse: text => ({ type: 'root', children: [{ type: 'text', position: { start: { offset: 0 }, end: { offset: text.length } } }] }) },
+    Zf: { parse: text => ({ type: 'root', children: [{ type: 'text', position: { start: { offset: 0 }, end: { offset: text.length } } }] }) },
     zhTranslateRequest: request,
     zhThinkingRegistryContext: {},
     Z: { useContext: () => null, useState: initial => [initial, () => {}], useReducer: () => [0, () => {}], useEffect: effect => effects.push(effect) },
@@ -154,6 +186,6 @@ test('展開的思考正文進入翻譯元件，並以原 Markdown renderer 顯�
   const patched = patchExpandedReasoningRenderer(`function Pz(){${expandedEntryRenderer}}`);
   assert.ok(patched.includes('e=>e.itemType===`reasoning`?(0,$.jsx)(ZhThinking,'));
   assert.ok(patched.includes('active:s(e),environmentId:r.threadRef?.environmentId,threadId:r.threadRef?.threadId'));
-  assert.ok(patched.includes('render:text=>(0,$.jsx)(Mr,{className:`text-foreground`,text,'));
-  assert.ok(patched.includes('},e.id):(0,$.jsx)(Mr,{'));
+  assert.ok(patched.includes('render:text=>(0,$.jsx)(Ir,{className:`text-foreground`,text,'));
+  assert.ok(patched.includes('},e.id):(0,$.jsx)(Ir,{'));
 });

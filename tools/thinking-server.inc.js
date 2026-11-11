@@ -13,6 +13,7 @@ const layerZhThinkingTranslation = add$2("POST", "/api/zh-tw/thinking", gen(func
   const settings = resolveProjectSettings(yield* (yield* ServerSettingsService).getSettings, projection.thread.projectId).settings;
   const textGeneration = yield* TextGeneration;
   const result = yield* textGeneration.translateThinking({
+    projectId: projection.thread.projectId,
     cwd: projection.thread.worktreePath ?? project.value.workspaceRoot,
     modelSelection: settings.textGenerationModelSelection,
     text: body.text

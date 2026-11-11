@@ -7,7 +7,7 @@ const { webcrypto } = require('node:crypto');
 const { TextEncoder } = require('node:util');
 const officialParser = require('./official-markdown-parser.cjs')();
 const { readArchive } = require('./asarRewrite');
-const currentArchive = path.join(__dirname, '../builds/0.1.8/orig/server.asar');
+const currentArchive = path.join(__dirname, '../builds/0.1.9/orig/server.asar');
 
 test('回覆翻譯使用目前版本對話模組的 Markdown 解析器', { skip: !fs.existsSync(currentArchive), timeout: 10000 }, () => {
   const archive = readArchive(currentArchive);
@@ -62,7 +62,7 @@ function harness(request, parser = fixtureTree, indexedDB) {
   let original = false;
   const context = vm.createContext({
     Promise, Map, Set, Error, JSON, crypto: webcrypto, TextEncoder, indexedDB,
-    Pf: { parse: parser }, zhTranslateRequest: request, zhThinkingRegistryContext: {},
+    Zf: { parse: parser }, zhTranslateRequest: request, zhThinkingRegistryContext: {},
     Z: {
       useContext: () => null,
       useState: () => [original, update => { original = typeof update === 'function' ? update(original) : update; }],
