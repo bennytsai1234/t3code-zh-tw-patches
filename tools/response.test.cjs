@@ -7,7 +7,7 @@ const { webcrypto } = require('node:crypto');
 const { TextEncoder } = require('node:util');
 const officialParser = require('./official-markdown-parser.cjs')();
 const { readArchive } = require('./asarRewrite');
-const currentArchive = path.join(__dirname, '../builds/0.1.9/orig/server.asar');
+const currentArchive = path.join(__dirname, '../builds/0.1.10/orig/server.asar');
 
 test('回覆翻譯使用目前版本對話模組的 Markdown 解析器', { skip: !fs.existsSync(currentArchive), timeout: 10000 }, () => {
   const archive = readArchive(currentArchive);
@@ -21,7 +21,7 @@ test('回覆翻譯使用目前版本對話模組的 Markdown 解析器', { skip:
   assert.equal(used, official);
 });
 
-test('0.1.7 官方解析器：中文標點後的粗體及斜體保留必要邊界空白', { skip: !officialParser, timeout: 10000 }, () => {
+test('0.1.10 官方解析器：中文標點後的粗體及斜體保留必要邊界空白', { skip: !officialParser, timeout: 10000 }, () => {
   const h = harness(async () => {}, officialParser);
   for (const delimiter of ['**', '*', '_', '__', '~~']) {
     const original = `Read ${delimiter}Done.${delimiter} Next.`;
@@ -31,7 +31,7 @@ test('0.1.7 官方解析器：中文標點後的粗體及斜體保留必要邊�
   }
 });
 
-test('0.1.7 官方解析器：遺失粗體標記仍拒絕譯文', { skip: !officialParser, timeout: 10000 }, () => {
+test('0.1.10 官方解析器：遺失粗體標記仍拒絕譯文', { skip: !officialParser, timeout: 10000 }, () => {
   const prepared = harness(async () => {}, officialParser).prepare('**Done.** Next.');
   const translation = prepared.input.replace('Done.', '完成。').replace('Next.', '接著處理。');
   assert.throws(() => prepared.restore(translation.replace(/⟦T3ZH0X\d+⟧/, '')), /未保留回覆格式/);
@@ -62,7 +62,7 @@ function harness(request, parser = fixtureTree, indexedDB) {
   let original = false;
   const context = vm.createContext({
     Promise, Map, Set, Error, JSON, crypto: webcrypto, TextEncoder, indexedDB,
-    Zf: { parse: parser }, zhTranslateRequest: request, zhThinkingRegistryContext: {},
+    Sp: { parse: parser }, zhTranslateRequest: request, zhThinkingRegistryContext: {},
     Z: {
       useContext: () => null,
       useState: () => [original, update => { original = typeof update === 'function' ? update(original) : update; }],
@@ -165,19 +165,20 @@ test('只有程式碼的回覆不呼叫翻譯模型', async () => {
   assert.equal(calls, 0);
 });
 
-test('正文的可閱讀文字含漢字時不送請求，純英文仍翻譯', async () => {
+test('正文的可讀文字以漢字較多時略過，英文較多或同數時翻譯', { timeout: 10000 }, async () => {
   const parser = value => ({ type: 'root', children: [{ type: 'text', position: { start: { offset: 0 }, end: { offset: value.length } } }] });
   const calls = [];
   const h = harness(async (...args) => { calls.push(args); return { translation: args[3] }; }, parser);
-  for (const text of ['已完成 API 驗證。', '  1. 先確認 Forcepoint，再讀 README。', '確認完成。\n\nRead the file.', '123 😀', '日本語の説明 API', 'API 已完成驗證。', 'Read the API，接著處理中文。']) {
+  for (const text of ['已完成 API 驗證。', '123 😀', '日本語の説明 API', 'API 已完成驗證。', '𠮷字 A']) {
     assert.equal(h.render(text, true), text);
     assert.equal(h.render(text), text);
   }
   await h.settle();
   assert.equal(calls.length, 0);
-  h.render('  1. Read the API.');
+  const translated = ['  1. Read the API.', '確認完成。\n\nRead the file.', '中文 AB', '𠮷 A', 'Read the API，接著處理中文。'];
+  for (const text of translated) h.render(text);
   await h.settle();
-  assert.equal(calls.length, 1);
+  assert.equal(calls.length, translated.length);
 });
 
 test('判定排除受保護的路徑、網址與程式碼', () => {
@@ -203,7 +204,7 @@ test('判定排除受保護的路徑、網址與程式碼', () => {
   assert.equal(codeFirst.prepare(source).needsTranslation, false);
 });
 
-test('0.1.7 官方解析器：思考與回覆忽略程式碼、路徑及網址中的漢字，連結文字仍參與判斷', { skip: !officialParser, timeout: 10000 }, async () => {
+test('0.1.10 官方解析器：思考與回覆忽略程式碼、路徑及網址中的漢字，連結文字仍參與判斷', { skip: !officialParser, timeout: 10000 }, async () => {
   const calls = [];
   const h = harness(async (...args) => { calls.push(args); return { translation: args[3] }; }, officialParser);
   const samples = [
@@ -223,7 +224,7 @@ test('0.1.7 官方解析器：思考與回覆忽略程式碼、路徑及網址�
   }
   await h.settle();
   assert.equal(calls.length, samples.length * 2);
-  const chineseLabel = 'Read the [說明](https://example.com/docs).';
+  const chineseLabel = 'See [操作說明](https://example.com/docs).';
   for (const kind of ['thinking', 'response']) assert.equal(h.render(chineseLabel, false, kind), chineseLabel);
   await h.settle();
   assert.equal(calls.length, samples.length * 2);

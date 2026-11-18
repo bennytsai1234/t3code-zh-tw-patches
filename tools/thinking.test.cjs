@@ -9,13 +9,13 @@ const { patchExpandedReasoningRenderer } = require('./patchThinkingRender.cjs');
 const { readArchive } = require('./asarRewrite');
 const acorn = require('acorn');
 const walk = require('acorn-walk');
-const patchedServer = path.join(__dirname, '../builds/0.1.9/zh-release/server.asar');
+const patchedServer = path.join(__dirname, '../builds/0.1.10/zh-release/server.asar');
 
-const expandedEntryRenderer = 'e=e=>(0,$.jsx)(Ir,{className:`text-foreground`,text:e.detail??``,cwd:r.markdownCwd,threadRef:r.threadRef??void 0,skills:r.skills,isStreaming:s(e),headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onImageExpand:r.onImageExpand,lineBreaks:!0},e.id),';
+const expandedEntryRenderer = 'e=e=>(0,$.jsx)(ui,{className:`text-foreground`,text:e.detail??``,cwd:r.markdownCwd,threadRef:r.threadRef??void 0,skills:r.skills,isStreaming:s(e),headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onImageExpand:r.onImageExpand,lineBreaks:!0},e.id),';
 
 test('翻譯服務將所屬專案交給文字產生服務', { skip: !fs.existsSync(patchedServer), timeout: 10000 }, () => {
   const archive = readArchive(patchedServer);
-  const entries = archive.files.filter(([name]) => /\/runtimeLayer-BR0FRrjb\.mjs$/.test(name));
+  const entries = archive.files.filter(([name]) => /\/runtimeLayer-CMUqXtti\.mjs$/.test(name));
   assert.equal(entries.length, 1);
   const source = archive.read(entries[0][1]).toString('utf8');
   const ast = acorn.parse(source, { ecmaVersion: 'latest', sourceType: 'module' });
@@ -45,7 +45,7 @@ function harness(request, indexedDB) {
   const effects = [];
   const context = vm.createContext({
     Promise, Map, Set, Error, JSON, crypto: webcrypto, TextEncoder, indexedDB,
-    Zf: { parse: text => ({ type: 'root', children: [{ type: 'text', position: { start: { offset: 0 }, end: { offset: text.length } } }] }) },
+    Sp: { parse: text => ({ type: 'root', children: [{ type: 'text', position: { start: { offset: 0 }, end: { offset: text.length } } }] }) },
     zhTranslateRequest: request,
     zhThinkingRegistryContext: {},
     Z: { useContext: () => null, useState: initial => [initial, () => {}], useReducer: () => [0, () => {}], useEffect: effect => effects.push(effect) },
@@ -150,19 +150,19 @@ test('不同對話不共用翻譯；純中文不呼叫模型', async () => {
   assert.equal(calls, 2);
 });
 
-test('思考摘要整段含漢字時不送請求，純英文仍翻譯', async () => {
+test('思考摘要的可讀文字以漢字較多時略過，英文較多或同數時翻譯', { timeout: 10000 }, async () => {
   const calls = [];
   const h = harness(async (...args) => { calls.push(args); return { translation: '先檢查 API。' }; });
-  for (const text of ['已完成 API 驗證。', '  1. 先確認 Forcepoint，再讀 README。', '「驗證完成」 OK', '123 😀', '確認完成。\n\nRead the file.', 'API 已完成驗證。', 'Inspect the API，接著處理中文。']) {
+  for (const text of ['已完成 API 驗證。', '「驗證完成」 OK', '123 😀', 'API 已完成驗證。']) {
     assert.equal(h.render(text, true), text);
     assert.equal(h.render(text), text);
   }
   await h.settle();
   assert.equal(calls.length, 0);
-  h.render('  1. Inspect the API.');
+  const translated = ['  1. Inspect the API.', '確認完成。\n\nRead the file.', '中文 AB', 'Inspect the API，接著處理中文。'];
+  for (const text of translated) h.render(text);
   await h.settle();
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0][3], '  1. Inspect the API.');
+  assert.deepEqual(calls.map(call => call[3]), translated);
 });
 test('供應商用量錯誤保留原文，不自動重試；可手動重試', async () => {
   let calls = 0;
@@ -186,6 +186,6 @@ test('展開的思考正文進入翻譯元件，並以原 Markdown renderer 顯�
   const patched = patchExpandedReasoningRenderer(`function Pz(){${expandedEntryRenderer}}`);
   assert.ok(patched.includes('e=>e.itemType===`reasoning`?(0,$.jsx)(ZhThinking,'));
   assert.ok(patched.includes('active:s(e),environmentId:r.threadRef?.environmentId,threadId:r.threadRef?.threadId'));
-  assert.ok(patched.includes('render:text=>(0,$.jsx)(Ir,{className:`text-foreground`,text,'));
-  assert.ok(patched.includes('},e.id):(0,$.jsx)(Ir,{'));
+  assert.ok(patched.includes('render:text=>(0,$.jsx)(ui,{className:`text-foreground`,text,'));
+  assert.ok(patched.includes('},e.id):(0,$.jsx)(ui,{'));
 });

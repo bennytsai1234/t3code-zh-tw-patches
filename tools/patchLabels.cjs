@@ -39,15 +39,15 @@ for (const [file, entry] of archive.files) {
     const callee = src.slice(call.callee.start, call.callee.end);
     if (!/\.jsxs?\)?$/.test(callee)) return;
     const value = node.value;
-    if ((key === 'children' && /\/SettingsPanels-De_u0dA8\.js$/.test(file) && ['Identifier', 'MemberExpression'].includes(value.type)) ||
+    if ((key === 'children' && /\/SettingsPanels-C-TkVbjc\.js$/.test(file) && ['Identifier', 'MemberExpression'].includes(value.type)) ||
         (key !== 'children' && ['Identifier','MemberExpression'].includes(value.type)) ||
         (value.type === 'MemberExpression' && ['label', 'displayLabel', 'optionLabel', 'effortLabel', 'title', 'description'].includes(value.property.name))) {
       edits.push({ start: value.start, end: value.end, text: `zhDisplayLabel(${src.slice(value.start, value.end)})` });
     }
   });
   // These two getters are the picker library's item-to-label interface, not option values.
-  if (/\/ProviderModelPicker-BXIbMEnM\.js$/.test(file)) {
-    const getters = [...src.matchAll(/function (?:Ot|kt)\(e\)\{return e\.(?:label|fullLabel)\}/g)];
+  if (/\/ProviderModelPicker-B7CXEIAV\.js$/.test(file)) {
+    const getters = [...src.matchAll(/function (?:Kt|qt)\(e\)\{return e\.(?:label|fullLabel)\}/g)];
     if (getters.length !== 2) throw Error('找不到模型選擇器的兩個標籤函式。');
     for (const match of getters) {
       const value = match[0].includes('e.fullLabel') ? 'e.fullLabel' : 'e.label';
@@ -56,23 +56,33 @@ for (const [file, entry] of archive.files) {
     }
     pinned.delete('picker');
   }
-  if (/\/utils-fcYT6KYI\.js$/.test(file)) {
+  if (/\/utils-CwRPUyFv\.js$/.test(file)) {
     const from = 'let{label:h}=m,g=n.provider===`codex`';
     if (src.split(from).length !== 2) throw Error('找不到模型選項的最終顯示標籤。');
     const start = src.indexOf(from);
     edits.push({ start, end: start + from.length, text: 'let{label:zhOptionLabel}=m,h=zhDisplayLabel(zhOptionLabel),g=n.provider===`codex`' });
-    // XY returns the server's option label for the composer trigger, menu rows and summaries; display-only.
+    // The helper returns the server's option label for the composer trigger, menu rows and summaries; display-only.
     const trigger = 'return e.options.find(e=>e.id===r)?.label??';
     if (src.split(trigger).length !== 2) throw Error('找不到選項標籤的回傳位置。');
     const triggerStart = src.indexOf(trigger);
     edits.push({ start: triggerStart, end: triggerStart + trigger.length, text: 'return zhDisplayLabel(e.options.find(e=>e.id===r)?.label)??' });
     pinned.delete('utils');
   }
-  if (/\/main-BN8wt5wy\.js$/.test(file)) {
-    const from = 'function LE(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
+  if (/\/main-fgzYaqEM\.js$/.test(file)) {
+    const localeLabel = 'zh:`中文（简体）`';
+    const localeMatch = 'var Uae=/^zh[-_](hant|tw|hk|mo)\\b/;function Wae(e,t){let n=e.trim().toLowerCase(),r=n.split(/[-_]/)[0],i=t.find(e=>e.toLowerCase()===n);return i||Uae.test(n)?i:t.find(e=>e.toLowerCase()===r)}';
+    for (const [from, text] of [
+      [localeLabel, 'zh:`繁體中文`'],
+      [localeMatch, 'function Wae(e,t){let n=e.trim().toLowerCase(),r=n.split(/[-_]/)[0];return t.find(e=>e.toLowerCase()===n)??t.find(e=>e.toLowerCase()===r)}']
+    ]) {
+      if (src.split(from).length !== 2) throw Error('找不到官方中文語系標籤或系統語系比對位置。');
+      const start = src.indexOf(from);
+      edits.push({ start, end: start + from.length, text });
+    }
+    const from = 'function wD(e,t){return e===0?null:`${e} ${t}${e===1?``:`s`}`}';
     if (src.split(from).length !== 2) throw Error('找不到更新項目數量的顯示函式。');
     const start = src.indexOf(from);
-    edits.push({ start, end: start + from.length, text: 'function LE(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
+    edits.push({ start, end: start + from.length, text: 'function wD(e,t){return e===0?null:`${e} 個${t===`provider`?`供應商`:t===`server`?`伺服器`:t}`}'});
     pinned.delete('main');
   }
   if (!edits.length) continue;

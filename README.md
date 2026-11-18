@@ -1,6 +1,6 @@
 # T3 Code 繁體中文與自動翻譯補丁
 
-適用 Windows **T3 Code 0.1.9**，官方 commit **24e77473ecf4**。修改官方安裝的兩份程式包：介面翻成繁體中文、修正外觀頁字型選單卡死，並自動翻譯思考內容與 AI 回覆。不升級 T3 Code，不變更對話、供應商、快捷鍵與外觀設定。其他版本會在建置時停住，要先移植補丁（步驟見 [AGENTS.md](AGENTS.md)）。
+適用 Windows **T3 Code 0.1.10**，官方 commit **7d32075e3757**。補丁將介面翻成繁體中文、修正外觀頁字型選單卡死，並自動翻譯思考內容與 AI 回覆。官方設定語系可選「繁體中文」，使用臺灣繁中系統語系時也可由「系統預設」選用。其他版本需依 [移植步驟](AGENTS.md) 更新接點。
 
 ## 安裝
 
@@ -10,15 +10,15 @@
 npm ci --prefix tools
 # 第一次套用前，從尚未修改的官方安裝保存原始程式包；以後一律從它重建。
 $resources = "$env:LOCALAPPDATA\Programs\t3code\resources"
-New-Item -ItemType Directory -Path builds\0.1.9\orig -Force
-Copy-Item "$resources\app.asar", "$resources\server.asar" builds\0.1.9\orig
-node tools/build.cjs builds/0.1.9/orig builds/0.1.9/zh-release
+New-Item -ItemType Directory -Path builds\0.1.10\orig -Force
+Copy-Item "$resources\app.asar", "$resources\server.asar" builds\0.1.10\orig
+node tools/build.cjs builds/0.1.10/orig builds/0.1.10/zh-release
 ```
 
 建置會核對兩份官方程式包的 SHA256，拿已修改過的程式包當輸入會被擋下。儲存工作、完全關閉 T3 Code 後執行：
 
 ```powershell
-.\tools\install.ps1 -Src .\builds\0.1.9\zh-release
+.\tools\install.ps1 -Src .\builds\0.1.10\zh-release
 # 安裝位置不同時，加上 -InstallDir 'D:\Apps\t3code'
 ```
 
@@ -36,7 +36,7 @@ setx T3CODE_DISABLE_AUTO_UPDATE true
 
 - 使用所屬專案有效設定中的「文字產生模型」（未覆寫時用環境的設定），沿用 T3 Code 的供應商登入，與該供應商共用額度。
 - 翻譯已顯示的思考內容與 AI 回覆，完成後才送出，串流期間顯示原文；不翻譯使用者輸入、工具輸出或未顯示的推理。固定介面文字不呼叫模型。
-- 思考摘要與回覆正文都先在本機檢查整個區塊的可閱讀文字：排除 Markdown 格式、程式碼、路徑與網址後，只要有漢字，就直接顯示原文，不送翻譯請求或顯示等待；連結顯示文字仍會檢查。沒有漢字時，略過空白、標點及編號後，第一個文字字元為英文字母（A–Z、a–z）才翻譯整個區塊。沒有文字的區塊不翻譯；日文中的漢字也會讓整個區塊略過翻譯。
+- 思考摘要與回覆正文都在本機比較整個區塊的漢字與英文字母（A–Z、a–z）數量。漢字較多或沒有英文字母時顯示原文。英文字母較多或兩者同數時翻譯整個區塊。計數排除 Markdown 格式、程式碼、路徑與網址，連結的顯示文字會計入。
 - 預設顯示繁體譯文，可切換回原文。活動列、展開的思考、展開工作記錄中的思考正文及來源對話引用共用同一份思考譯文。
 - 回覆中的程式碼、Markdown 結構、連結目標與路徑在本機保護並還原，粗體、斜體與刪除線旁的邊界空白也由本機保留，確保中文標點不破壞格式；翻譯結果未保留格式時顯示原文，提供手動重試。常見技術名詞優先採用臺灣通行譯名，品牌與模型名稱保留原文。
 - 同一環境、對話和顯示類型的相同原文只送一次，完成的區塊依序翻譯。成功譯文存在 T3 Code 的本機 IndexedDB，重開後直接讀取；失敗不快取，不寫回對話紀錄，也不跨裝置同步。
@@ -44,9 +44,13 @@ setx T3CODE_DISABLE_AUTO_UPDATE true
 - 後端新增 `/api/zh-tw/thinking`，沿用環境驗證與對話操作權限；前端透過 T3 Code 內建的環境認證請求送出（Bearer／DPoP，DPoP 被拒時更新授權再試一次）。遠端環境也要套用同版本補丁。
 - 使用 T3 Code 的文字產生服務，支援文字產生器、`fromRunner` 供應商及其 Codex、OpenCode 包裝，以及 Muse；不支援文字產生的供應商會顯示錯誤並保留原文。
 
+## 驗證
+
+0.1.10 已完成建置、34 項自動測試及獨立目錄的安裝演練。隔離環境已驗證繁中介面、臺灣繁中系統語系、未登入時的翻譯路由，以及一筆實際對話的思考與混合中英回覆翻譯、回覆原文切換、行內程式碼與連結保護。重新整理後回覆與展開的思考使用本機快取，翻譯請求數為 0。
+
 ## 目前版本未實測
 
-0.1.9 已完成建置、自動測試、隔離伺服器介面與未登入路由檢查，並以實際對話確認思考與回覆翻譯、原文切換、程式碼、路徑及連結保護，以及重新整理後從快取顯示譯文且不再送出翻譯請求。尚未實測獨立文字產生器、OpenCode 翻譯及遠端中繼的 DPoP 授權更新。
+獨立文字產生器、OpenCode 翻譯及遠端中繼的 DPoP 授權更新。
 
 ## 倉庫內容
 

@@ -6,40 +6,51 @@ const acorn = require('acorn');
 const { readArchive } = require('./asarRewrite');
 
 module.exports = function officialMarkdownParser() {
-  const file = path.join(__dirname, '../builds/0.1.7/orig/server.asar');
+  const file = path.join(__dirname, '../builds/0.1.10/orig/server.asar');
   if (!fs.existsSync(file)) return null;
   const archive = readArchive(file);
-  function read(pattern) {
-    const matches = archive.files.filter(([name]) => pattern.test(name));
-    if (matches.length !== 1) throw Error(`Expected one parser dependency: ${pattern}`);
-    return archive.read(matches[0][1]).toString('utf8');
-  }
-  const src = read(/\/client\/assets\/ChatMarkdown-[^/]+\.js$/);
-  const nodes = acorn.parse(src, { ecmaVersion: 'latest', sourceType: 'module' }).body;
-  const declarations = new Map(), functions = [];
-  for (const node of nodes) {
-    if (node.type === 'FunctionDeclaration') functions.push(src.slice(node.start, node.end));
-    if (node.type === 'VariableDeclaration') for (const item of node.declarations) {
-      if (item.id.type === 'Identifier') declarations.set(item.id.name, 'var ' + src.slice(item.start, item.end));
+  const entries = new Map(archive.files);
+  const modules = new Map();
+  function load(name) {
+    if (modules.has(name)) return modules.get(name);
+    const entry = entries.get(name);
+    if (!entry) throw Error(`Missing parser dependency: ${name}`);
+    const source = archive.read(entry).toString('utf8');
+    const nodes = acorn.parse(source, { ecmaVersion: 'latest', sourceType: 'module' }).body;
+    const context = vm.createContext({ URL, TextEncoder, TextDecoder, structuredClone });
+    const exports = new Map();
+    const evaluate = code => vm.runInContext(code, context, { timeout: 5000 });
+    const module = { evaluate, export: key => evaluate(exports.get(key)) };
+    modules.set(name, module);
+    function bind(local, get) {
+      Object.defineProperty(context, local, {
+        configurable: true,
+        get() {
+          const value = get();
+          Object.defineProperty(context, local, { configurable: true, writable: true, value });
+          return value;
+        }
+      });
     }
-  }
-  const runtime = read(/\/client\/assets\/rolldown-runtime-[^/]+\.js$/);
-  const runtimeContext = vm.createContext({});
-  vm.runInContext(runtime.slice(0, runtime.lastIndexOf('export{')), runtimeContext);
-  const context = vm.createContext({ URL, TextEncoder, TextDecoder, structuredClone,
-    e: runtimeContext.l, t: runtimeContext.s, n: runtimeContext.o });
-  vm.runInContext(functions.join('\n'), context);
-  function evaluate(code) {
-    for (let i = 0; i < 1000; i++) {
-      try { return vm.runInContext(code, context, { timeout: 1000 }); }
-      catch (error) {
-        const name = /^([\w$]+) is not defined$/.exec(error.message)?.[1];
-        if (!name || !declarations.has(name)) throw error;
-        evaluate(declarations.get(name));
+    for (const node of nodes) {
+      if (node.type === 'FunctionDeclaration') evaluate(source.slice(node.start, node.end));
+      if (node.type === 'ClassDeclaration') bind(node.id.name, () => evaluate('(' + source.slice(node.start, node.end) + ')'));
+      if (node.type === 'VariableDeclaration') for (const item of node.declarations) {
+        if (item.id.type === 'Identifier') bind(item.id.name, () => item.init && evaluate('(' + source.slice(item.init.start, item.init.end) + ')'));
+      }
+      if (node.type === 'ExportNamedDeclaration') for (const specifier of node.specifiers) {
+        exports.set(specifier.exported.name, specifier.local.name);
+      }
+      if (node.type === 'ImportDeclaration') for (const specifier of node.specifiers) {
+        if (specifier.type !== 'ImportSpecifier') continue;
+        const dependency = path.posix.join(path.posix.dirname(name), node.source.value);
+        bind(specifier.local.name, () => load(dependency).export(specifier.imported.name));
       }
     }
-    throw Error('Parser dependency limit');
+    return module;
   }
-  evaluate('var parser=Ba().use(Qc).use(Xv).freeze()');
-  return text => evaluate('parser.parse(' + JSON.stringify(text) + ')');
+  const matches = [...entries.keys()].filter(name => /\/client\/assets\/useTimelineFollow-[^/]+\.js$/.test(name));
+  if (matches.length !== 1) throw Error('Expected one timeline module');
+  const { evaluate } = load(matches[0]);
+  return text => evaluate('Sp.parse(' + JSON.stringify(text) + ')');
 };

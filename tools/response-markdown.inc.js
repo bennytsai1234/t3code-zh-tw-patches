@@ -1,10 +1,5 @@
-// Uses the timeline module's existing Markdown parser (Zf). Only prose is sent for translation;
+// Uses the timeline module's existing Markdown parser (Sp). Only prose is sent for translation;
 // Markdown syntax, code, links, paths and line breaks are restored locally from the original.
-function zhStartsWithEnglish(prose) {
-  // Ignore punctuation, whitespace and numbered-list prefixes. Other scripts stop detection.
-  const firstLetter = prose.match(/\p{L}/u)?.[0] ?? "";
-  return /^[A-Za-z]$/.test(firstLetter);
-}
 function zhPrepareResponse(text) {
   const ranges = [];
   const boundaries = new Set([0, text.length]);
@@ -69,7 +64,7 @@ function zhPrepareResponse(text) {
     }
     if (Array.isArray(node.children)) for (const child of node.children) walk(child);
   }
-  const tree = Zf.parse(text);
+  const tree = Sp.parse(text);
   walk(tree);
   function structure(node) {
     if (node.type === "text") return null;
@@ -122,9 +117,11 @@ function zhPrepareResponse(text) {
     cursor = end;
   }
   protectRange(cursor, text.length);
+  const englishLetters = prose.match(/[A-Za-z]/g)?.length ?? 0;
+  const hanCharacters = prose.match(/\p{Script=Han}/gu)?.length ?? 0;
   return {
     input,
-    needsTranslation: !/\p{Script=Han}/u.test(prose) && zhStartsWithEnglish(prose),
+    needsTranslation: englishLetters > 0 && englishLetters >= hanCharacters,
     restore(translation) {
       const pattern = new RegExp(`${prefix}\\d+⟧`, "g");
       const found = translation.match(pattern) ?? [];
@@ -133,7 +130,7 @@ function zhPrepareResponse(text) {
         throw Error("譯文未保留回覆格式，已保留原文；可手動重試。");
       }
       const restored = translation.replace(pattern, marker => originals[Number(marker.slice(prefix.length, -1))]);
-      if (JSON.stringify(structure(Zf.parse(restored))) !== originalStructure) {
+      if (JSON.stringify(structure(Sp.parse(restored))) !== originalStructure) {
         throw Error("譯文未保留回覆格式，已保留原文；可手動重試。");
       }
       return restored;

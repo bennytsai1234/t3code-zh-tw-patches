@@ -61,11 +61,13 @@ function render(node, src, zh, edits) {
 }
 
 // logicStrings: Set of values seen in logic contexts across the whole bundle.
-function translateFile(file, dict, logicStrings, stats) {
+function translateFile(file, dict, logicStrings, stats, { settingsCatalog = false } = {}) {
   const edits = [];
   let src;
   function canTranslate(value, ctx) {
     if (!dict.has(value) || (ctx === "prop:children" && WORDMARK_CHILDREN.has(value))) return false;
+    // The official settings catalog stores display text under hashed keys or in local bindings.
+    if (settingsCatalog) return ctx === "var" || /^prop:[0-9a-f]{16}$/.test(ctx);
     const dialog = ctx === "join" || /^call:[\w$]+\.confirm#0$/.test(ctx);
     // Page titles keyed by route, e.g. { "/settings/general": "General" }.
     const routeTitle = ctx.startsWith("prop:/settings/");

@@ -23,8 +23,16 @@ const dict = loadDict(dictDir);
 const logic = collectLogicStrings(targets.map((t) => t[1]));
 const stats = { used: new Set(), edits: 0 };
 const repl = new Map();
+const englishSettings = targets.find(([p]) => p === PREFIX + "en-C17-Nw8w.js");
+if (!englishSettings || !targets.some(([p]) => p === PREFIX + "zh-P9d3p48U.js")) {
+  throw new Error("找不到官方設定的英文或中文詞庫。");
+}
 for (const [p, local] of targets) {
-  const out = translateFile(local, dict, logic, stats);
+  // On systems that select the native Chinese locale, use the same Traditional Chinese dictionary.
+  const isChineseSettings = p === PREFIX + "zh-P9d3p48U.js";
+  const out = isChineseSettings
+    ? translateFile(englishSettings[1], dict, logic, stats, { settingsCatalog: true })
+    : translateFile(local, dict, logic, stats);
   if (out == null) continue;
   // V8 syntax check (the browser's parser), not just acorn.
   const check = spawnSync(process.execPath, ["--input-type=module", "--check"], { input: out, encoding: "utf8" });
