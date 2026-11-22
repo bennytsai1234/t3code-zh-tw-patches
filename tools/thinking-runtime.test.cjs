@@ -4,20 +4,21 @@ const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
 
-// Runs zhTranslateEffect with stand-ins for the runtime module's Effect helpers. The fake fJ plays the
+// Runs zhTranslateEffect with stand-ins for the runtime module's Effect helpers. The fake $M plays the
 // attempts the real one makes: it asks url() for each attempt's endpoints, then builds that attempt's request.
 function harness(attempts, fhResult) {
   const seen = { urls: [], requests: [], options: null };
   const done = value => ({ *[Symbol.iterator]() { return value; } });
   const context = vm.createContext({
     URL, JSON, Error, globalThis: {},
-    Ou: generator => ({ run: () => { const it = generator(); let step = it.next(); while (!step.done) step = it.next(); return step.value; } }),
-    Sd: tag => done({ _tag: 'Some', value: tag }),
-    Gn: option => option._tag === 'None',
-    mO: 'session', eJ: 'signer', dJ: 'remote', nQe: class {},
-    wd: () => effect => effect,
-    Jne: run => ({ run }),
-    nY: options => {
+    H: done,
+    Kn: generator => ({ run: () => { const it = generator(); let step = it.next(); while (!step.done) step = it.next(); return step.value; } }),
+    rr: tag => done({ _tag: 'Some', value: tag }),
+    xr: option => option._tag === 'None',
+    Ov: 'session', aj: 'signer', Tj: 'remote', Ore: class {},
+    fo: () => effect => effect,
+    Xa: run => ({ run }),
+    $M: options => {
       seen.options = options;
       for (const origin of attempts) {
         seen.urls.push(options.url({ session: () => origin + 'api/auth/session' }));
@@ -26,7 +27,7 @@ function harness(attempts, fhResult) {
       return { pipe: () => done(fhResult) };
     }
   });
-  vm.runInContext(fs.readFileSync(path.join(__dirname, 'thinking-runtime.inc.js'), 'utf8').replace('export function', 'function') + '\nthis.effect = zhTranslateEffect;', context);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, 'thinking-runtime.inc.js'), 'utf8').replace(/^export /gm, '') + '\nthis.effect = zhTranslateEffect;', context);
   return { context, seen, run: () => context.effect({ httpAuthorization: { _tag: 'Dpop' }, httpBaseUrl: 'https://old.example/' }, 'thread-1', 'Read the file.').run() };
 }
 function fetchStub(status, body) {

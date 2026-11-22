@@ -5,7 +5,7 @@ const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
 const { readArchive, writeArchive } = require("./asarRewrite");
-const { loadDict, translateFile, collectLogicStrings } = require("./translate");
+const { loadDict, translateFile, translateCatalog, collectLogicStrings } = require("./translate");
 
 const [inAsar, outAsar, dictDir] = process.argv.slice(2);
 const PREFIX = "apps/server/dist/client/assets/";
@@ -23,15 +23,16 @@ const dict = loadDict(dictDir);
 const logic = collectLogicStrings(targets.map((t) => t[1]));
 const stats = { used: new Set(), edits: 0 };
 const repl = new Map();
-const englishSettings = targets.find(([p]) => p === PREFIX + "en-C17-Nw8w.js");
-if (!englishSettings || !targets.some(([p]) => p === PREFIX + "zh-P9d3p48U.js")) {
-  throw new Error("找不到官方設定的英文或中文詞庫。");
+const englishCatalog = targets.find(([p]) => p === PREFIX + "en-DNzZ2NN9.js");
+const chineseCatalog = PREFIX + "zh-D9_s0eR2.js";
+if (!englishCatalog || !targets.some(([p]) => p === chineseCatalog)) {
+  throw new Error("找不到官方介面的英文或中文詞庫。");
 }
 for (const [p, local] of targets) {
-  // On systems that select the native Chinese locale, use the same Traditional Chinese dictionary.
-  const isChineseSettings = p === PREFIX + "zh-P9d3p48U.js";
-  const out = isChineseSettings
-    ? translateFile(englishSettings[1], dict, logic, stats, { settingsCatalog: true })
+  if (/\/(?:de|en|es|fr|ja|ko|pt-BR|ru|sv)-[\w-]{8}\.js$/.test(p)) continue;
+  // Preserve the official Chinese catalog's keys and rich messages, with project terms taking precedence.
+  const out = p === chineseCatalog
+    ? translateCatalog(englishCatalog[1], local, dict, stats)
     : translateFile(local, dict, logic, stats);
   if (out == null) continue;
   // V8 syntax check (the browser's parser), not just acorn.

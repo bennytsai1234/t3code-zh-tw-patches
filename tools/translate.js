@@ -2,6 +2,8 @@
 const { scanFile, strValue, contextOf } = require("./scan");
 const fs = require("fs");
 const path = require("path");
+const acorn = require("acorn");
+const walk = require("acorn-walk");
 
 const UI_CTX = new Set([
   "prop:children", "prop:label", "prop:title", "prop:aria-label", "prop:description", "prop:placeholder",
@@ -61,13 +63,11 @@ function render(node, src, zh, edits) {
 }
 
 // logicStrings: Set of values seen in logic contexts across the whole bundle.
-function translateFile(file, dict, logicStrings, stats, { settingsCatalog = false } = {}) {
+function translateFile(file, dict, logicStrings, stats) {
   const edits = [];
   let src;
   function canTranslate(value, ctx) {
     if (!dict.has(value) || (ctx === "prop:children" && WORDMARK_CHILDREN.has(value))) return false;
-    // The official settings catalog stores display text under hashed keys or in local bindings.
-    if (settingsCatalog) return ctx === "var" || /^prop:[0-9a-f]{16}$/.test(ctx);
     const dialog = ctx === "join" || /^call:[\w$]+\.confirm#0$/.test(ctx);
     // Page titles keyed by route, e.g. { "/settings/general": "General" }.
     const routeTitle = ctx.startsWith("prop:/settings/");
@@ -102,10 +102,70 @@ function translateFile(file, dict, logicStrings, stats, { settingsCatalog = fals
   return applyWithin(src, 0, src.length, edits);
 }
 
+function readCatalog(file) {
+  const source = fs.readFileSync(file, "utf8");
+  const ast = acorn.parse(source, { ecmaVersion: "latest", sourceType: "module" });
+  const bindings = new Map(ast.body.flatMap(node => node.declarations ?? [])
+    .map(node => [node.id.name, node.init]));
+  const entry = ast.body.flatMap(node => node.specifiers ?? [])
+    .find(specifier => specifier.exported?.name === "default");
+  const messages = bindings.get(entry?.local.name);
+  if (messages?.type !== "ObjectExpression") throw Error("找不到官方介面詞庫的預設匯出：" + file);
+  const entries = new Map(messages.properties.map(property => [property.key.name ?? property.key.value, property.value]));
+  return { source, ast, bindings, entries };
+}
+
+function catalogText(node) {
+  if (node.type === "Literal" || (node.type === "TemplateLiteral" && node.expressions.length === 0)) {
+    return strValue(node);
+  }
+  return null;
+}
+
+function createTaiwanTextConverter() {
+  const toTaiwan = require("opencc-js/cn2t").Converter({ from: "cn", to: "twp" });
+  const terms = { 子智慧體: "子代理", 智慧體: "代理", 子智能體: "子代理", 智能體: "代理",
+    會話: "對話", 計算機: "電腦", 憑據: "憑證", 令牌: "權杖", 許可權: "權限" };
+  const termPattern = new RegExp(Object.keys(terms).join("|"), "g");
+  return text => text.replace(/\x60[^\x60]*\x60|https?:\/\/[^\s]+|\p{Script=Han}+/gu, part =>
+    /^\p{Script=Han}/u.test(part) ? toTaiwan(part).replace(termPattern, term => terms[term]) : part);
+}
+
+function translateCatalog(englishFile, chineseFile, dict, stats) {
+  const english = readCatalog(englishFile);
+  const chinese = readCatalog(chineseFile);
+  if (english.entries.size !== chinese.entries.size) throw Error("官方英中詞庫的鍵數不符。");
+  const convert = createTaiwanTextConverter();
+  const overrides = new Map();
+  for (const [key, original] of english.entries) {
+    const target = chinese.entries.get(key);
+    if (!target) throw Error("官方中文詞庫缺少鍵 " + key);
+    const value = catalogText(english.bindings.get(original.name) ?? original);
+    if (!dict.has(value) || catalogText(chinese.bindings.get(target.name) ?? target) === null) continue;
+    overrides.set(target, dict.get(value));
+    stats.used.add(value);
+  }
+  const edits = [];
+  walk.fullAncestor(chinese.ast, (node, _, ancestors) => {
+    let translation = overrides.get(node);
+    if (translation === undefined) {
+      const text = catalogText(node);
+      if (!text || !/\p{Script=Han}/u.test(text)) return;
+      const context = contextOf(ancestors, node).ctx;
+      if (context === "key" || context === "ckey") return;
+      translation = convert(text);
+      if (translation === text) return;
+    }
+    edits.push({ start: node.start, end: node.end, text: () => JSON.stringify(translation) });
+    stats.edits++;
+  });
+  return applyWithin(chinese.source, 0, chinese.source.length, edits);
+}
+
 function collectLogicStrings(files) {
   const set = new Set();
   for (const f of files) scanFile(f, ({ value, ctx }) => { if (LOGIC.test(ctx)) set.add(value); });
   return set;
 }
 
-module.exports = { loadDict, translateFile, collectLogicStrings };
+module.exports = { loadDict, translateFile, translateCatalog, createTaiwanTextConverter, collectLogicStrings };

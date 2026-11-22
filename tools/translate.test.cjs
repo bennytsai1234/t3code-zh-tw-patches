@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { translateFile } = require('./translate');
+const { translateFile, translateCatalog } = require('./translate');
 
 test('樣板字串沒有完整譯文時保留內層片段；有完整譯文時一併翻譯', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 't3zh-translate-test-'));
@@ -31,14 +31,16 @@ test('請求的 input.title 保留原文，畫面標題仍可翻譯', () => {
   }
 });
 
-test('官方設定詞庫翻譯雜湊鍵下的文字並保留鍵值', { timeout: 10000 }, () => {
+test('介面詞庫保留官方雜湊鍵、富文字結構和變數，優先採用專案譯文', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 't3zh-translate-test-'));
   try {
-    const file = path.join(dir, 'settings.js');
-    fs.writeFileSync(file, 'const label = "Manual"; export default { "0a75e464d833bca8": "Settings", "62570d4bfe4ab517": label };');
+    const english = path.join(dir, 'en.js');
+    const chinese = path.join(dir, 'zh.js');
+    fs.writeFileSync(english, 'const label = "Manual", catalog = { a: "Settings", b: label, c: ["In ", {i:1,k:"_gt_value_1",v:"v"}] }; export { catalog as default, label as b };');
+    fs.writeFileSync(chinese, 'const label = "手动", catalog = { a: "设置", b: label, c: ["计算机上的", {i:1,k:"_gt_value_1",v:"v"}, "会话"] }; export { catalog as default, label as b };');
     const dict = new Map([['Settings', '設定'], ['Manual', '手動']]);
-    const result = translateFile(file, dict, new Set(['Manual']), { used: new Set(), edits: 0 }, { settingsCatalog: true });
-    assert.equal(result, 'const label = "手動"; export default { "0a75e464d833bca8": "設定", "62570d4bfe4ab517": label };');
+    const result = translateCatalog(english, chinese, dict, { used: new Set(), edits: 0 });
+    assert.equal(result, 'const label = "手動", catalog = { a: "設定", b: "手動", c: ["電腦上的", {i:1,k:"_gt_value_1",v:"v"}, "對話"] }; export { catalog as default, label as b };');
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

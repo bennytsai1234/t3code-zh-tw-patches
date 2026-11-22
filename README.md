@@ -1,6 +1,6 @@
 # T3 Code 繁體中文與自動翻譯補丁
 
-適用 Windows **T3 Code 0.1.10**，官方 commit **7d32075e3757**。補丁將介面翻成繁體中文、修正外觀頁字型選單卡死，並自動翻譯思考內容與 AI 回覆。官方設定語系可選「繁體中文」，使用臺灣繁中系統語系時也可由「系統預設」選用。其他版本需依 [移植步驟](AGENTS.md) 更新接點。
+適用 Windows **T3 Code 0.1.11**，官方 commit **59651c1761f6**。補丁將介面翻成繁體中文、修正外觀頁字型選單卡死，並自動翻譯思考內容與 AI 回覆。介面用語優先採用專案譯文，其餘官方中文介面文字在建置時轉成臺灣繁中。語言預設跟隨系統，新環境使用臺灣繁中系統語系時會顯示繁中，也可以在「設定 → 一般 → 語言」選擇「繁體中文」。其他版本需依 [移植步驟](AGENTS.md) 更新接點。
 
 ## 安裝
 
@@ -10,15 +10,15 @@
 npm ci --prefix tools
 # 第一次套用前，從尚未修改的官方安裝保存原始程式包；以後一律從它重建。
 $resources = "$env:LOCALAPPDATA\Programs\t3code\resources"
-New-Item -ItemType Directory -Path builds\0.1.10\orig -Force
-Copy-Item "$resources\app.asar", "$resources\server.asar" builds\0.1.10\orig
-node tools/build.cjs builds/0.1.10/orig builds/0.1.10/zh-release
+New-Item -ItemType Directory -Path builds\0.1.11\orig -Force
+Copy-Item "$resources\app.asar", "$resources\server.asar" builds\0.1.11\orig
+node tools/build.cjs builds/0.1.11/orig builds/0.1.11/zh-release
 ```
 
 建置會核對兩份官方程式包的 SHA256，拿已修改過的程式包當輸入會被擋下。儲存工作、完全關閉 T3 Code 後執行：
 
 ```powershell
-.\tools\install.ps1 -Src .\builds\0.1.10\zh-release
+.\tools\install.ps1 -Src .\builds\0.1.11\zh-release
 # 安裝位置不同時，加上 -InstallDir 'D:\Apps\t3code'
 ```
 
@@ -46,11 +46,11 @@ setx T3CODE_DISABLE_AUTO_UPDATE true
 
 ## 驗證
 
-0.1.10 已完成建置、34 項自動測試及獨立目錄的安裝演練。隔離環境已驗證繁中介面、臺灣繁中系統語系、未登入時的翻譯路由，以及一筆實際對話的思考與混合中英回覆翻譯、回覆原文切換、行內程式碼與連結保護。重新整理後回覆與展開的思考使用本機快取，翻譯請求數為 0。
+0.1.11 已完成建置、34 項自動測試及獨立目錄的安裝演練。隔離環境已驗證臺灣繁中系統語系、設定側欄和模型思考程度的繁中顯示，以及翻譯路由未登入時回傳 401。用 Claude Haiku 5.5 對話與 GPT-6-Luna（low）翻譯，確認展開的思考和混合中英回覆皆可切換原文，且回覆保留行內程式碼、路徑和連結。重新整理後回覆與展開的思考使用本機快取，翻譯請求數為 0。
 
 ## 目前版本未實測
 
-獨立文字產生器、OpenCode 翻譯及遠端中繼的 DPoP 授權更新。
+桌面原生選單、獨立文字產生器、OpenCode 翻譯及遠端中繼的 DPoP 授權更新。
 
 ## 倉庫內容
 

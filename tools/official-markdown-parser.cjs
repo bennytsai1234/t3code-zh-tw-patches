@@ -6,7 +6,7 @@ const acorn = require('acorn');
 const { readArchive } = require('./asarRewrite');
 
 module.exports = function officialMarkdownParser() {
-  const file = path.join(__dirname, '../builds/0.1.10/orig/server.asar');
+  const file = path.join(__dirname, '../builds/0.1.11/orig/server.asar');
   if (!fs.existsSync(file)) return null;
   const archive = readArchive(file);
   const entries = new Map(archive.files);
@@ -52,5 +52,5 @@ module.exports = function officialMarkdownParser() {
   const matches = [...entries.keys()].filter(name => /\/client\/assets\/useTimelineFollow-[^/]+\.js$/.test(name));
   if (matches.length !== 1) throw Error('Expected one timeline module');
   const { evaluate } = load(matches[0]);
-  return text => evaluate('Sp.parse(' + JSON.stringify(text) + ')');
+  return text => evaluate('Xp.parse(' + JSON.stringify(text) + ')');
 };
