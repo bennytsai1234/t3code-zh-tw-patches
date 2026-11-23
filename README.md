@@ -1,6 +1,6 @@
 # T3 Code 繁體中文與自動翻譯補丁
 
-適用 Windows **T3 Code 0.1.11**，官方 commit **59651c1761f6**。補丁將介面翻成繁體中文、修正外觀頁字型選單卡死，並自動翻譯思考內容與 AI 回覆。介面用語優先採用專案譯文，其餘官方中文介面文字在建置時轉成臺灣繁中。語言預設跟隨系統，新環境使用臺灣繁中系統語系時會顯示繁中，也可以在「設定 → 一般 → 語言」選擇「繁體中文」。其他版本需依 [移植步驟](AGENTS.md) 更新接點。
+適用 Windows **T3 Code 0.1.11** 與同版本的 [Linux 伺服器](#linux-伺服器)，官方 commit **59651c1761f6**。補丁將介面翻成繁體中文、修正外觀頁字型選單卡死，並自動翻譯思考內容與 AI 回覆。介面用語優先採用專案譯文，其餘官方中文介面文字在建置時轉成臺灣繁中。語言預設跟隨系統，新環境使用臺灣繁中系統語系時會顯示繁中，也可以在「設定 → 一般 → 語言」選擇「繁體中文」。其他版本需依 [移植步驟](AGENTS.md) 更新接點。
 
 ## 安裝
 
@@ -32,6 +32,38 @@ setx T3CODE_DISABLE_AUTO_UPDATE true
 
 要升級時改成 `false`、重開 T3 Code 更新，再照 AGENTS.md 移植補丁。其他電腦安裝相同官方版本、複製本倉庫後照上述步驟即可，登入與供應商設定由該電腦的 T3 Code 管理。
 
+## Linux 伺服器
+
+用 `npm install -g t3@0.1.11` 安裝的 Linux x64 伺服器，執行檔與網頁介面在 `~/.t3/runtime/versions/0.1.11`。桌面版透過 T3 Connect 開啟這台電腦的環境時，翻譯請求由這台伺服器處理，所以它也要套用補丁；用瀏覽器直接開它的網頁介面時也會是繁中。
+
+補丁在已完成上述 Windows 建置的電腦上建置，需要 `builds/0.1.11/orig` 與 `builds/0.1.11/zh-release`。以下 `<主機>` 是 Linux 電腦的 SSH 名稱：
+
+```powershell
+New-Item -ItemType Directory -Path builds\0.1.11\linux-orig -Force
+scp <主機>:.t3/runtime/versions/0.1.11/t3 builds/0.1.11/linux-orig/
+scp -r <主機>:.t3/runtime/versions/0.1.11/client builds/0.1.11/linux-orig/
+node tools/buildLinux.cjs builds/0.1.11/linux-orig builds/0.1.11/orig builds/0.1.11/zh-release builds/0.1.11/linux-zh-release
+ssh <主機> mkdir -p t3code-zh-tw
+scp -r builds/0.1.11/linux-zh-release tools/installLinux.cjs <主機>:t3code-zh-tw/
+```
+
+建置會核對官方執行檔的 SHA256，並確認 Linux 的網頁介面與 Windows 官方版逐檔相同。重新啟動服務會中斷進行中的對話，確認沒有對話在跑後，在 Linux 電腦上執行：
+
+```sh
+cd ~/t3code-zh-tw
+node installLinux.cjs linux-zh-release
+systemctl --user restart t3code
+```
+
+安裝工具第一次執行時把官方執行檔與網頁介面備份到 `~/.t3/zh-tw-official/0.1.11`，在旁邊暫存並校驗新檔後才換上，不會動到設定與對話資料。要恢復官方版本：
+
+```sh
+node ~/t3code-zh-tw/installLinux.cjs --restore
+systemctl --user restart t3code
+```
+
+Linux 伺服器不會自動更新，只有在介面按「更新伺服器」或執行 `t3 update` 才會換版。換版後服務改跑新版本資料夾，補丁隨之失效，所以要先照 AGENTS.md 移植新版補丁再更新。
+
 ## 思考與回覆翻譯行為
 
 - 使用所屬專案有效設定中的「文字產生模型」（未覆寫時用環境的設定），沿用 T3 Code 的供應商登入，與該供應商共用額度。
@@ -46,11 +78,11 @@ setx T3CODE_DISABLE_AUTO_UPDATE true
 
 ## 驗證
 
-0.1.11 已完成建置、34 項自動測試及獨立目錄的安裝演練。隔離環境已驗證臺灣繁中系統語系、設定側欄和模型思考程度的繁中顯示，以及翻譯路由未登入時回傳 401。用 Claude Haiku 5.5 對話與 GPT-6-Luna（low）翻譯，確認展開的思考和混合中英回覆皆可切換原文，且回覆保留行內程式碼、路徑和連結。重新整理後回覆與展開的思考使用本機快取，翻譯請求數為 0。
+0.1.11 已完成建置、34 項自動測試及獨立目錄的安裝演練。隔離環境已驗證臺灣繁中系統語系、設定側欄和模型思考程度的繁中顯示，以及翻譯路由未登入時回傳 401。用 Claude Haiku 5.5 對話與 GPT-6-Luna（low）翻譯，確認展開的思考和混合中英回覆皆可切換原文，且回覆保留行內程式碼、路徑和連結。重新整理後回覆與展開的思考使用本機快取，翻譯請求數為 0。Linux 伺服器在 Ubuntu 26.04 用獨立資料夾演練安裝、還原與重複安裝，並以 Claude Haiku 5.5 對話與翻譯通過同樣的檢查；正式服務換上後翻譯路由未登入回 401，T3 Connect 正常連線。
 
 ## 目前版本未實測
 
-桌面原生選單、獨立文字產生器、OpenCode 翻譯及遠端中繼的 DPoP 授權更新。
+桌面原生選單、獨立文字產生器、OpenCode 翻譯、遠端中繼的 DPoP 授權更新，以及桌面版經 T3 Connect 開啟 Linux 環境時的翻譯和 Linux 上以 Codex 模型翻譯。
 
 ## 倉庫內容
 
