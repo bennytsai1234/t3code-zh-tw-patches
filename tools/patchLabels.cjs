@@ -93,6 +93,11 @@ for (const [file, entry] of archive.files) {
     if (src.split(from).length !== 2) throw Error('找不到輸入框的模型思考程度標籤。');
     const start = src.indexOf(from);
     edits.push({ start, end: start + from.length, text: 'className:\x60max-w-24 truncate\x60,children:zhDisplayLabel(d)' });
+    // Heading of the model menu's effort column: the server's option label, e.g. "Reasoning".
+    const heading = 'heading for reasoning effort levels\x60})),t[3]=o?.effort?.descriptor.label,t[4]=o?.others,t[5]=n,t[6]=s):s=t[6];let c;t[7]===s?c=t[8]:(c=(0,$.jsx)(\x60span\x60,{className:\x60text-muted-foreground\x60,children:s})';
+    if (src.split(heading).length !== 2) throw Error('找不到模型選單的思考程度欄標題。');
+    const headingStart = src.indexOf(heading) + heading.length - 'children:s})'.length;
+    edits.push({ start: headingStart, end: headingStart + 'children:s'.length, text: 'children:zhDisplayLabel(s)' });
     pinned.delete('composer');
   }
   if (!edits.length) continue;
