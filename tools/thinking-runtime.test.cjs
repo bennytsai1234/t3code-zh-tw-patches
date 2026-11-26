@@ -4,21 +4,21 @@ const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
 
-// Runs zhTranslateEffect with stand-ins for the runtime module's Effect helpers. The fake $M plays the
+// Runs zhTranslateEffect with stand-ins for the runtime module's Effect helpers. The fake qM plays the
 // attempts the real one makes: it asks url() for each attempt's endpoints, then builds that attempt's request.
 function harness(attempts, fhResult) {
   const seen = { urls: [], requests: [], options: null };
   const done = value => ({ *[Symbol.iterator]() { return value; } });
   const context = vm.createContext({
     URL, JSON, Error, globalThis: {},
-    H: done,
-    Kn: generator => ({ run: () => { const it = generator(); let step = it.next(); while (!step.done) step = it.next(); return step.value; } }),
-    rr: tag => done({ _tag: 'Some', value: tag }),
-    xr: option => option._tag === 'None',
-    Ov: 'session', aj: 'signer', Tj: 'remote', Ore: class {},
-    fo: () => effect => effect,
-    Xa: run => ({ run }),
-    $M: options => {
+    K: done,
+    os: generator => ({ run: () => { const it = generator(); let step = it.next(); while (!step.done) step = it.next(); return step.value; } }),
+    _u: tag => done({ _tag: 'Some', value: tag }),
+    se: option => option._tag === 'None',
+    jv: 'session', cj: 'signer', Oj: 'remote', $re: class {},
+    he: () => effect => effect,
+    et: run => ({ run }),
+    qM: options => {
       seen.options = options;
       for (const origin of attempts) {
         seen.urls.push(options.url({ session: () => origin + 'api/auth/session' }));

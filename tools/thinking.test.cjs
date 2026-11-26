@@ -9,13 +9,13 @@ const { patchExpandedReasoningRenderer } = require('./patchThinkingRender.cjs');
 const { readArchive } = require('./asarRewrite');
 const acorn = require('acorn');
 const walk = require('acorn-walk');
-const patchedServer = path.join(__dirname, '../builds/0.1.11/zh-release/server.asar');
+const patchedServer = path.join(__dirname, '../builds/0.1.12/zh-release/server.asar');
 
-const expandedEntryRenderer = 'e=e=>(0,$.jsx)(Si,{className:`text-foreground`,text:e.detail??``,cwd:r.markdownCwd,threadRef:r.threadRef??void 0,skills:r.skills,isStreaming:s(e),headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onImageExpand:r.onImageExpand,lineBreaks:!0},e.id),';
+const expandedEntryRenderer = 'e=e=>(0,Q.jsx)(zr,{className:`text-foreground`,text:e.detail??``,cwd:r.markdownCwd,threadRef:r.threadRef??void 0,skills:r.skills,isStreaming:s(e),headingLevelOffset:3,onUseArtifactTemplate:r.onUseArtifactTemplate,onImageExpand:r.onImageExpand,lineBreaks:!0},e.id),';
 
 test('翻譯服務將所屬專案交給文字產生服務', { skip: !fs.existsSync(patchedServer), timeout: 10000 }, () => {
   const archive = readArchive(patchedServer);
-  const entries = archive.files.filter(([name]) => /\/runtimeLayer-CyWe8jGq\.mjs$/.test(name));
+  const entries = archive.files.filter(([name]) => /\/runtimeLayer-CYImUJjW\.mjs$/.test(name));
   assert.equal(entries.length, 1);
   const source = archive.read(entries[0][1]).toString('utf8');
   const ast = acorn.parse(source, { ecmaVersion: 'latest', sourceType: 'module' });
@@ -45,11 +45,11 @@ function harness(request, indexedDB) {
   const effects = [];
   const context = vm.createContext({
     Promise, Map, Set, Error, JSON, crypto: webcrypto, TextEncoder, indexedDB,
-    Xp: { parse: text => ({ type: 'root', children: [{ type: 'text', position: { start: { offset: 0 }, end: { offset: text.length } } }] }) },
+    zhMarkdown: { parse: text => ({ type: 'root', children: [{ type: 'text', position: { start: { offset: 0 }, end: { offset: text.length } } }] }) },
     zhTranslateRequest: request,
     zhThinkingRegistryContext: {},
-    Z: { useContext: () => null, useState: initial => [initial, () => {}], useReducer: () => [0, () => {}], useEffect: effect => effects.push(effect) },
-    $: { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) }
+    $: { useContext: () => null, useState: initial => [initial, () => {}], useReducer: () => [0, () => {}], useEffect: effect => effects.push(effect) },
+    Q: { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) }
   });
   vm.runInContext(fs.readFileSync(path.join(__dirname, 'response-markdown.inc.js'), 'utf8') + '\n' + fs.readFileSync(path.join(__dirname, 'thinking-client.inc.js'), 'utf8') + '\nthis.component = ZhThinking;', context);
   return {
@@ -184,8 +184,8 @@ test('供應商用量錯誤保留原文，不自動重試；可手動重試', as
 });
 test('展開的思考正文進入翻譯元件，並以原 Markdown renderer 顯示譯文', () => {
   const patched = patchExpandedReasoningRenderer(`function Pz(){${expandedEntryRenderer}}`);
-  assert.ok(patched.includes('e=>e.itemType===`reasoning`?(0,$.jsx)(ZhThinking,'));
+  assert.ok(patched.includes('e=>e.itemType===`reasoning`?(0,Q.jsx)(ZhThinking,'));
   assert.ok(patched.includes('active:s(e),environmentId:r.threadRef?.environmentId,threadId:r.threadRef?.threadId'));
-  assert.ok(patched.includes('render:text=>(0,$.jsx)(Si,{className:`text-foreground`,text,'));
-  assert.ok(patched.includes('},e.id):(0,$.jsx)(Si,{'));
+  assert.ok(patched.includes('render:text=>(0,Q.jsx)(zr,{className:`text-foreground`,text,'));
+  assert.ok(patched.includes('},e.id):(0,Q.jsx)(zr,{'));
 });

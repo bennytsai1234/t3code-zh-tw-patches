@@ -17,5 +17,5 @@
   {"from":"\"d82d7c96e1904629\": \"正在回退到 Windows 后端，以便打开 T3 Code。修复 WSL 发行版后，请在“设置 > 共享与访问”中重新启用 WSL 后端。\"","to":"\"d82d7c96e1904629\": \"改用 Windows 後端讓 T3 Code 可以開啟。WSL 發行版修好後，請到「設定 > 分享與存取」重新啟用 WSL 後端。\"","count":1},
   {"from":"const TRADITIONAL_CHINESE = /^zh[-_](hant|tw|hk|mo)\\b/;\nfunction matchSupportedLocale(tag, supported) {","to":"function matchSupportedLocale(tag, supported) {","count":1},
   {"from":"if (exact || TRADITIONAL_CHINESE.test(normalized)) return exact;","to":"if (exact) return exact;","count":1},
-  {"to":"language: String$2.pipe(withDecodingDefault(succeed$3(\"system\")))","from":"language: String$2.pipe(withDecodingDefault(succeed$3(\"en\")))","count":1}
+  {"to":"language: String$2.pipe(withDecodingDefault(succeed$4(\"system\")))","from":"language: String$2.pipe(withDecodingDefault(succeed$4(\"en\")))","count":1}
 ]

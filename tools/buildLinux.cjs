@@ -9,17 +9,17 @@ const crypto = require('crypto');
 const { spawnSync } = require('child_process');
 const acorn = require('acorn');
 const { readArchive } = require('./asarRewrite');
-const { patchTextGeneration, patchServer } = require('./serverThinking.cjs');
+const { patchRunner, patchFacade, patchServer } = require('./serverThinking.cjs');
 const { findServerModule } = require('./seaAsset.cjs');
 
 const [linuxOrig, windowsOrig, windowsRelease, destination] = process.argv.slice(2);
 if (!destination) throw Error('Usage: node tools/buildLinux.cjs <linux-orig> <windows-orig> <windows-zh-release> <output-directory>');
-const supported = '0.1.11';
-const officialT3 = 'f13dd1f37eb2f719b41f45219b3800412799c80f724b022839b8a133e21aced1';
+const supported = '0.1.12';
+const officialT3 = '9ee30165e321c20521df68c7de1614759369aecf00d33077ee1d367fe50858cf';
 // Windows server.asar name -> name in the Linux bundle; identical names are listed so they are checked too.
 const names = {
-  add$2: 'add$1', gen: 'gen$1', catch_: 'catch_$2', succeed$1: 'succeed$6', provide: 'provide$3',
-  layer$179: 'layer$206', fn: 'fn$1', String$1: 'String$7',
+  add$2: 'add$3', gen: 'gen$1', catch_: 'catch_$2', succeed: 'succeed$7', provide$1: 'provide$3',
+  layer$199: 'layer$231', fn: 'fn$1', String: 'String$7',
   Struct: 'Struct', TextGeneration: 'TextGeneration', fromRunner: 'fromRunner', byOpenCodeRuntime: 'byOpenCodeRuntime',
   authenticateRawRouteWithScope: 'authenticateRawRouteWithScope', AuthOrchestrationOperateScope: 'AuthOrchestrationOperateScope',
   HttpServerRequest: 'HttpServerRequest', jsonUnsafe: 'jsonUnsafe', ThreadManagementService: 'ThreadManagementService',
@@ -40,7 +40,7 @@ function check(source) {
   const result = spawnSync(process.execPath, ['--input-type=module', '--check'], { input: source, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   if (result.status !== 0) throw Error(`binMain.mjs: ${result.stderr}`);
 }
-let src = patchServer(patchTextGeneration(exe.subarray(start, start + size).toString('utf8'), names), names);
+let src = patchServer(patchFacade(patchRunner(exe.subarray(start, start + size).toString('utf8'), names), names), names);
 check(src);
 
 const comments = [];
@@ -89,6 +89,7 @@ const linuxClient = [];
 })(path.join(linuxOrig, 'client'), '');
 const differing = linuxClient.filter(r => !originalClient.get(r)?.equals(fs.readFileSync(path.join(linuxOrig, 'client', r))));
 if (differing.length || linuxClient.length !== originalClient.size) throw Error(`Linux 前端與 Windows 官方前端不同：${differing.slice(0, 5).join(', ') || '檔案數不同'}`);
+if (JSON.parse(fs.readFileSync(path.join(windowsRelease, 'patch-manifest.json'), 'utf8')).version !== supported) throw Error(`Windows 補丁成品不是 ${supported} 的建置。`);
 const releaseClient = clientOf(readArchive(path.join(windowsRelease, 'server.asar')));
 const lines = [];
 for (const [r, buf] of [...releaseClient].sort(([a], [b]) => (a < b ? -1 : 1))) {
@@ -97,7 +98,7 @@ for (const [r, buf] of [...releaseClient].sort(([a], [b]) => (a < b ? -1 : 1))) 
   lines.push(`${sha256(buf)}  client/${r}`);
 }
 fs.writeFileSync(path.join(output, 'SHA256SUMS'), `${sha256(t3)}  t3\n${lines.join('\n')}\n`);
-fs.writeFileSync(path.join(output, 'patch-manifest.json'), JSON.stringify({ version: supported, platform: 'linux-x64', upstreamCommit: '59651c1761f6', official: { t3: officialT3 }, hashes: { t3: sha256(t3) } }, null, 2) + '\n');
+fs.writeFileSync(path.join(output, 'patch-manifest.json'), JSON.stringify({ version: supported, platform: 'linux-x64', upstreamCommit: 'ca81b7b97a1c', official: { t3: officialT3 }, hashes: { t3: sha256(t3) } }, null, 2) + '\n');
 console.log(`伺服器程式：移除 ${removed} 行路徑註解騰出空間，長度維持 ${size} 位元組，通過 V8 語法檢查與名稱檢查。`);
 console.log(`前端：${linuxClient.length} 個檔案與 Windows 官方前端相同，已換成繁中版。`);
 console.log(`已建置 ${output}`);

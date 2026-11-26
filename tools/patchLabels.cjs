@@ -39,15 +39,15 @@ for (const [file, entry] of archive.files) {
     const callee = src.slice(call.callee.start, call.callee.end);
     if (!/\.jsxs?\)?$/.test(callee)) return;
     const value = node.value;
-    if ((key === 'children' && /\/SettingsPanels-CeUEsYdD\.js$/.test(file) && ['Identifier', 'MemberExpression'].includes(value.type)) ||
+    if ((key === 'children' && /\/SettingsPanels-Dcoqotsv\.js$/.test(file) && ['Identifier', 'MemberExpression'].includes(value.type)) ||
         (key !== 'children' && ['Identifier','MemberExpression'].includes(value.type)) ||
         (value.type === 'MemberExpression' && ['label', 'displayLabel', 'optionLabel', 'effortLabel', 'title', 'description'].includes(value.property.name))) {
       edits.push({ start: value.start, end: value.end, text: `zhDisplayLabel(${src.slice(value.start, value.end)})` });
     }
   });
   // These two getters are the picker library's item-to-label interface, not option values.
-  if (/\/ProviderModelPicker-CkHxDKn3\.js$/.test(file)) {
-    const getters = [...src.matchAll(/function (?:cn|ln)\(e\)\{return e\.(?:label|fullLabel)\}/g)];
+  if (/\/ProviderModelPicker-Tx_dd0AL\.js$/.test(file)) {
+    const getters = [...src.matchAll(/function (?:gn|_n)\(e\)\{return e\.(?:label|fullLabel)\}/g)];
     if (getters.length !== 2) throw Error('找不到模型選擇器的兩個標籤函式。');
     for (const match of getters) {
       const value = match[0].includes('e.fullLabel') ? 'e.fullLabel' : 'e.label';
@@ -56,7 +56,7 @@ for (const [file, entry] of archive.files) {
     }
     pinned.delete('picker');
   }
-  if (/\/utils-CfAhq9cy\.js$/.test(file)) {
+  if (/\/utils-Bng1kvMW\.js$/.test(file)) {
     const from = 'let{label:h}=m,g=n.provider===`codex`';
     if (src.split(from).length !== 2) throw Error('找不到模型選項的最終顯示標籤。');
     const start = src.indexOf(from);
@@ -68,12 +68,12 @@ for (const [file, entry] of archive.files) {
     edits.push({ start: triggerStart, end: triggerStart + trigger.length, text: 'return zhDisplayLabel(e.options.find(e=>e.id===r)?.label)??' });
     pinned.delete('utils');
   }
-  if (/\/main-Dfw4_UIy\.js$/.test(file)) {
+  if (/\/messages-Du1c-VEy\.js$/.test(file)) {
     const localeLabel = 'zh:`中文（简体）`';
-    const localeMatch = 'var Zce=/^zh[-_](hant|tw|hk|mo)\\b/;function Qce(e,t){let n=e.trim().toLowerCase(),r=n.split(/[-_]/)[0],i=t.find(e=>e.toLowerCase()===n);return i||Zce.test(n)?i:t.find(e=>e.toLowerCase()===r)}';
+    const localeMatch = 'var na=/^zh[-_](hant|tw|hk|mo)\\b/;function ra(e,t){let n=e.trim().toLowerCase(),r=n.split(/[-_]/)[0],i=t.find(e=>e.toLowerCase()===n);return i||na.test(n)?i:t.find(e=>e.toLowerCase()===r)}';
     for (const [from, text] of [
       [localeLabel, 'zh:`繁體中文`'],
-      [localeMatch, 'function Qce(e,t){let n=e.trim().toLowerCase(),r=n.split(/[-_]/)[0];return t.find(e=>e.toLowerCase()===n)??t.find(e=>e.toLowerCase()===r)}']
+      [localeMatch, 'function ra(e,t){let n=e.trim().toLowerCase(),r=n.split(/[-_]/)[0];return t.find(e=>e.toLowerCase()===n)??t.find(e=>e.toLowerCase()===r)}']
     ]) {
       if (src.split(from).length !== 2) throw Error('找不到官方中文語系標籤或系統語系比對位置。');
       const start = src.indexOf(from);
@@ -81,18 +81,18 @@ for (const [file, entry] of archive.files) {
     }
     pinned.delete('main');
   }
-  if (/\/network-DzfmnD4s\.js$/.test(file)) {
-    const from = 'language:y.pipe(O(m(\x60en\x60)))';
+  if (/\/network-IO1fFe6J\.js$/.test(file)) {
+    const from = 'language:x.pipe(A(h(\x60en\x60)))';
     if (src.split(from).length !== 2) throw Error('找不到用戶端的預設語系設定。');
     const start = src.indexOf(from);
-    edits.push({ start, end: start + from.length, text: 'language:y.pipe(O(m(\x60system\x60)))' });
+    edits.push({ start, end: start + from.length, text: 'language:x.pipe(A(h(\x60system\x60)))' });
     pinned.delete('network');
   }
-  if (/\/_chat-CpVn0Bm5\.js$/.test(file)) {
-    const from = 'className:\x60max-w-24 truncate\x60,children:p';
+  if (/\/ThreadRouteView-jIIdWstE\.js$/.test(file)) {
+    const from = 'className:\x60max-w-24 truncate\x60,children:d';
     if (src.split(from).length !== 2) throw Error('找不到輸入框的模型思考程度標籤。');
     const start = src.indexOf(from);
-    edits.push({ start, end: start + from.length, text: 'className:\x60max-w-24 truncate\x60,children:zhDisplayLabel(p)' });
+    edits.push({ start, end: start + from.length, text: 'className:\x60max-w-24 truncate\x60,children:zhDisplayLabel(d)' });
     pinned.delete('composer');
   }
   if (!edits.length) continue;

@@ -23,4 +23,4 @@ const layerZhThinkingTranslation = add$2("POST", "/api/zh-tw/thinking", gen(func
   EnvironmentAuthInvalidError: toResponse,
   EnvironmentInternalError: toResponse,
   EnvironmentScopeRequiredError: toResponse
-}), catch_(() => succeed$1(jsonUnsafe({ error: "翻譯失敗，請確認文字生成模型與可用額度；可手動重試。" }, { status: 502 })))));
+}), catch_(() => succeed(jsonUnsafe({ error: "翻譯失敗，請確認文字生成模型與可用額度；可手動重試。" }, { status: 502 })))));

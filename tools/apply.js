@@ -23,11 +23,12 @@ const dict = loadDict(dictDir);
 const logic = collectLogicStrings(targets.map((t) => t[1]));
 const stats = { used: new Set(), edits: 0 };
 const repl = new Map();
-const englishCatalog = targets.find(([p]) => p === PREFIX + "en-DNzZ2NN9.js");
-const chineseCatalog = PREFIX + "zh-D9_s0eR2.js";
-if (!englishCatalog || !targets.some(([p]) => p === chineseCatalog)) {
+const catalogs = (lang) => targets.filter(([p]) => p.startsWith(PREFIX + lang + "-") && /^[\w-]{8}\.js$/.test(p.slice(PREFIX.length + lang.length + 1)));
+const englishCatalogs = catalogs("en"), chineseCatalogs = catalogs("zh");
+if (englishCatalogs.length !== 1 || chineseCatalogs.length !== 1) {
   throw new Error("找不到官方介面的英文或中文詞庫。");
 }
+const englishCatalog = englishCatalogs[0], chineseCatalog = chineseCatalogs[0][0];
 for (const [p, local] of targets) {
   if (/\/(?:de|en|es|fr|ja|ko|pt-BR|ru|sv)-[\w-]{8}\.js$/.test(p)) continue;
   // Preserve the official Chinese catalog's keys and rich messages, with project terms taking precedence.

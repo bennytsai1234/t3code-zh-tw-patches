@@ -1,15 +1,15 @@
 // Runs on the Linux computer; needs only Node.js.
 //   node installLinux.cjs <linux-zh-release>   install, keeping the official t3 and client
 //   node installLinux.cjs --restore            put the official t3 and client back
-// The runtime directory defaults to $T3CODE_HOME/runtime/versions/0.1.11 (T3CODE_HOME defaults to ~/.t3).
+// The runtime directory defaults to $T3CODE_HOME/runtime/versions/0.1.12 (T3CODE_HOME defaults to ~/.t3).
 // Files are swapped by rename, so the running service keeps its open executable until it restarts.
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 
-const version = '0.1.11';
-const officialT3 = 'f13dd1f37eb2f719b41f45219b3800412799c80f724b022839b8a133e21aced1';
+const version = '0.1.12';
+const officialT3 = '9ee30165e321c20521df68c7de1614759369aecf00d33077ee1d367fe50858cf';
 const args = process.argv.slice(2);
 const restore = args[0] === '--restore';
 const source = restore ? null : args[0];
